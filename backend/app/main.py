@@ -300,6 +300,15 @@ def review_knowledge(knowledge_id: str, action: Literal["accepted", "rejected", 
     return {"id": knowledge_id, "status": action}
 
 
+@app.get("/v1/decisions")
+def list_decisions():
+    with db() as connection:
+        rows = connection.execute(
+            "SELECT id, question, recommendation, confidence, final_decision, created_at FROM decision_records ORDER BY created_at DESC LIMIT 50"
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
 @app.post("/v1/decisions/analyze", status_code=201)
 def analyze_decision(payload: DecisionAnalyze):
     """Deterministic Phase-1 scaffold; replace with routed expert services in Phase 2."""
