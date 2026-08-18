@@ -28,6 +28,20 @@ class MockProvider(ModelProvider):
                     "unknowns": ["Delegation execution", "Energy load over 6 weeks"],
                 }
             )
+        if "extract knowledge-graph" in user.lower() or "entities and relations" in user.lower():
+            return json.dumps(
+                {
+                    "entities": [
+                        {"name": "ACA research", "type": "Concept", "confidence": 0.82},
+                        {"name": "Vaidya Mitra", "type": "Organization", "confidence": 0.75},
+                        {"name": "Clinical validation", "type": "Method", "confidence": 0.7},
+                    ],
+                    "relations": [
+                        {"from": "ACA research", "to": "Clinical validation", "type": "RELATES_TO", "confidence": 0.68},
+                        {"from": "Vaidya Mitra", "to": "Clinical validation", "type": "SUPPORTS", "confidence": 0.72},
+                    ],
+                }
+            )
         if "drift" in user.lower()[:300]:
             return json.dumps(
                 {

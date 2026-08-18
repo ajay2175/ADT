@@ -81,9 +81,15 @@ async def hybrid_search(query: str, include_proposed: bool = False, limit: int =
         text_hits = rows_to_dicts(cur.fetchall())
 
     vector_hits = await vector_search(query, limit=limit)
+    graph_hits = graph_search(query, limit=limit)
     seen = set()
     merged = []
     for hit in vector_hits:
+        key = hit["content"][:80]
+        if key not in seen:
+            seen.add(key)
+            merged.append(hit)
+    for hit in graph_hits:
         key = hit["content"][:80]
         if key not in seen:
             seen.add(key)
@@ -94,3 +100,38 @@ async def hybrid_search(query: str, include_proposed: bool = False, limit: int =
             seen.add(key)
             merged.append({**hit, "retrieval": "text"})
     return merged[:limit]
+
+
+async def hybrid_graph_rag(query: str, include_proposed: bool = False, limit: int = 15) -> list[dict]:
+    """Vector + text + 1-hop graph neighborhood."""
+    from app.graph import graph_search
+
+    text_vector = await hybrid_search(query, include_proposed, limit)
+    graph_hits = await graph_search(query, limit=max(4, limit // 3))
+    seen: set[str] = set()
+    merged: list[dict] = []
+    for hit in text_vector + graph_hits:
+        key = (hit.get("content") or hit.get("summary") or hit.get("title") or "")[:80]
+        if key and key not in seen:
+            seen.add(key)
+            merged.append(hit)
+    return merged[:limit]
+
+
+def graph_search(query: str, limit: int = 10) -> list[dict]:
+    """One-hop accepted graph context. Neo4j is a projection; SQL is authoritative."""
+    tokens = [token for token in query.lower().split() if len(token) > 2][:8]
+    if not tokens:
+        return []
+    clauses = " OR ".join("lower(n.name) LIKE %s" for _ in tokens)
+    with db() as connection:
+        cur = connection.execute(
+            f"""SELECT DISTINCT k.title, k.summary, k.source_class, n.name AS entity_name
+                 FROM graph_nodes n
+                 JOIN graph_relations r ON r.to_id=n.id AND r.relation='MENTIONS' AND r.status='accepted'
+                 JOIN knowledge_items k ON k.id=r.from_id AND k.status='accepted'
+                 WHERE n.status='accepted' AND ({clauses}) LIMIT %s""",
+            tuple(f"%{token}%" for token in tokens) + (limit,),
+        )
+        rows = rows_to_dicts(cur.fetchall())
+    return [{"content": row["summary"][:400], "title": row["title"], "source_class": row["source_class"], "score": 0.7, "retrieval": "graph", "entity": row["entity_name"]} for row in rows]

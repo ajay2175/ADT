@@ -189,6 +189,20 @@ def setup_database() -> None:
               relation TEXT NOT NULL, weight REAL NOT NULL
             )
             """,
+            """
+            CREATE TABLE IF NOT EXISTS graph_nodes (
+              id TEXT PRIMARY KEY, node_type TEXT NOT NULL, name TEXT NOT NULL,
+              status TEXT NOT NULL, protected INTEGER NOT NULL DEFAULT 0,
+              metadata TEXT NOT NULL, created_at TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS graph_relations (
+              id TEXT PRIMARY KEY, from_id TEXT NOT NULL, to_id TEXT NOT NULL,
+              relation TEXT NOT NULL, weight REAL NOT NULL, status TEXT NOT NULL,
+              created_at TEXT NOT NULL
+            )
+            """,
         ]:
             if connection.dialect == "sqlite":
                 connection.executescript(ddl)
@@ -196,6 +210,7 @@ def setup_database() -> None:
                 connection.execute(ddl)
 
         _seed_if_empty(connection)
+        _seed_graph_mirror(connection)
         _migrate_schema(connection)
 
 
@@ -215,47 +230,28 @@ def _seed_if_empty(connection) -> None:
     count = connection.execute("SELECT COUNT(*) AS c FROM constitution_items").fetchone()
     c = count["c"] if isinstance(count, dict) else count[0]
     if c == 0:
-        connection.executemany(
-            "INSERT INTO constitution_items VALUES (%s, %s, %s, 'approved', %s, '1.0', %s, %s)",
-            [(str(uuid.uuid4()), cat, stmt, pri, True if connection.dialect == "postgres" else 1, NOW()) for cat, stmt, pri in SEED_CONSTITUTION],
-        )
+        connection.executemany("INSERT INTO constitution_items VALUES (%s, %s, %s, 'approved', %s, '1.0', %s, %s)", [(str(uuid.uuid4()), cat, stmt, pri, True if connection.dialect == "postgres" else 1, NOW()) for cat, stmt, pri in SEED_CONSTITUTION])
     else:
         for cat, stmt, pri in SEED_CONSTITUTION:
-            row = connection.execute("SELECT id FROM constitution_items WHERE statement = %s", (stmt,)).fetchone()
-            if not row:
-                connection.execute(
-                    "INSERT INTO constitution_items VALUES (%s, %s, %s, 'approved', %s, '1.0', %s, %s)",
-                    (str(uuid.uuid4()), cat, stmt, pri, True if connection.dialect == "postgres" else 1, NOW()),
-                )
+            if not connection.execute("SELECT id FROM constitution_items WHERE statement=%s", (stmt,)).fetchone():
+                connection.execute("INSERT INTO constitution_items VALUES (%s,%s,%s,'approved',%s,'1.0',%s,%s)", (str(uuid.uuid4()), cat, stmt, pri, True if connection.dialect == "postgres" else 1, NOW()))
+    expert_count = connection.execute("SELECT COUNT(*) AS c FROM expert_profiles").fetchone()
+    if (expert_count["c"] if isinstance(expert_count, dict) else expert_count[0]) == 0:
+        connection.executemany("INSERT INTO expert_profiles VALUES (%s,%s,%s,%s,'active','0.1')", [(eid, name, json.dumps(domains), protocol) for eid, name, domains, protocol in SEED_EXPERTS])
+    research_count = connection.execute("SELECT COUNT(*) AS c FROM research_programs").fetchone()
+    if (research_count["c"] if isinstance(research_count, dict) else research_count[0]) == 0:
+        connection.execute("INSERT INTO research_programs VALUES (%s,%s,%s,'active',%s,'preliminary; replication required')", ("aca_faculty_dissociation", "ACA / AI Faculty Dissociation", "Are AI failures functionally decomposable into distinguishable stages, and does diagnosing the failure stage improve intervention selection?", "Run stage-aware intervention trial against generic correction and process supervision."))
+    web_count = connection.execute("SELECT COUNT(*) AS c FROM knowledge_items WHERE source_class='web'").fetchone()
+    if (web_count["c"] if isinstance(web_count, dict) else web_count[0]) == 0:
+        connection.executemany("INSERT INTO knowledge_items VALUES (%s,%s,%s,%s,%s,'proposed',%s)", [(str(uuid.uuid4()), title, ctype, summary, sclass, NOW()) for title, ctype, summary, sclass in WEB_SEED_KNOWLEDGE])
 
-    count = connection.execute("SELECT COUNT(*) AS c FROM expert_profiles").fetchone()
-    c = count["c"] if isinstance(count, dict) else count[0]
-    if c == 0:
-        connection.executemany(
-            "INSERT INTO expert_profiles VALUES (%s, %s, %s, %s, 'active', '0.1')",
-            [(eid, name, json.dumps(domains), protocol) for eid, name, domains, protocol in SEED_EXPERTS],
-        )
 
-    count = connection.execute("SELECT COUNT(*) AS c FROM research_programs").fetchone()
-    c = count["c"] if isinstance(count, dict) else count[0]
-    if c == 0:
-        connection.execute(
-            "INSERT INTO research_programs VALUES (%s, %s, %s, 'active', %s, 'preliminary; replication required')",
-            (
-                "aca_faculty_dissociation",
-                "ACA / AI Faculty Dissociation",
-                "Are AI failures functionally decomposable into distinguishable stages, and does diagnosing the failure stage improve intervention selection?",
-                "Run stage-aware intervention trial against generic correction and process supervision.",
-            ),
-        )
-
-    count = connection.execute("SELECT COUNT(*) AS c FROM knowledge_items WHERE source_class = 'web'").fetchone()
-    c = count["c"] if isinstance(count, dict) else count[0]
-    if c == 0:
-        connection.executemany(
-            "INSERT INTO knowledge_items VALUES (%s, %s, %s, %s, %s, 'proposed', %s)",
-            [(str(uuid.uuid4()), title, ctype, summary, sclass, NOW()) for title, ctype, summary, sclass in WEB_SEED_KNOWLEDGE],
-        )
+def _seed_graph_mirror(connection) -> None:
+    """Seed only protected Constitution and curated Expert nodes; never infer values."""
+    for item in rows_to_dicts(connection.execute("SELECT id, statement FROM constitution_items WHERE status='approved'").fetchall()):
+        connection.execute("INSERT INTO graph_nodes (id,node_type,name,status,protected,metadata,created_at) VALUES (%s,'ConstitutionItem',%s,'accepted',1,%s,%s) ON CONFLICT(id) DO NOTHING", (item["id"], item["statement"], "{}", NOW()))
+    for expert in rows_to_dicts(connection.execute("SELECT id, name FROM expert_profiles WHERE status='active'").fetchall()):
+        connection.execute("INSERT INTO graph_nodes (id,node_type,name,status,protected,metadata,created_at) VALUES (%s,'Expert',%s,'accepted',0,%s,%s) ON CONFLICT(id) DO NOTHING", (expert["id"], expert["name"], "{}", NOW()))
 
 
 def row_to_dict(row: Any) -> dict:

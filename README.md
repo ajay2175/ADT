@@ -43,7 +43,17 @@ LLM_PROVIDER=openai   # or anthropic | local | mock
 | Hybrid search | Text + vector merge |
 | Live drift-check | LLM inference: mirror → re-anchor → alternative → action |
 | Postgres + pgvector | Docker Compose production path |
+| GraphRAG (minimal) | Neo4j Docker + extraction on accept + 1-hop graph retrieval |
 | Persistent UI | All tabs wired to backend across sessions |
+
+## GraphRAG (Neo4j — optional, free locally)
+
+```bash
+docker compose up neo4j -d
+cp .env.example .env   # NEO4J_URI=bolt://localhost:7687, password adtgraph
+```
+
+Restart backend. **Accept** an inbox item → entities extracted → Neo4j indexed. Browse: http://localhost:7474
 
 ## Constitutional invariant
 

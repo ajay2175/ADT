@@ -6,14 +6,14 @@ import uuid
 from app.database import NOW, db, rows_to_dicts
 from app.experts import run_all_experts, select_experts
 from app.model_gateway import get_provider, parse_json_block
-from app.retrieval import hybrid_search
+from app.retrieval import hybrid_graph_rag
 
 
 async def analyze_decision(question: str, context: dict | None = None) -> dict:
     context = context or {}
     high_risk = any(t in question.lower() for t in ("patient", "medical", "diagnosis", "treatment", "clinical", "invest"))
-    expert_views = await run_all_experts(question, high_risk=high_risk)
-    evidence = await hybrid_search(question, limit=8)
+    evidence = await hybrid_graph_rag(question, limit=8)
+    expert_views = await run_all_experts(question, high_risk=high_risk, evidence=evidence)
 
     with db() as connection:
         cur = connection.execute("SELECT * FROM constitution_items WHERE status = 'approved' ORDER BY priority DESC")

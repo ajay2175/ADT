@@ -12,3 +12,5 @@ python-docx>=1.1,<2
 numpy>=2.0,<3
 psycopg2-binary>=2.9,<3
 pgvector>=0.3,<1
+neo4j>=5.26,<6
+neo4j>=5.25,<6

@@ -4,6 +4,7 @@ import json
 
 from app.database import db, rows_to_dicts
 from app.model_gateway import get_provider, parse_json_block
+from app.retrieval import hybrid_graph_rag
 
 
 def select_experts(query: str, requested_domains: list[str] | None = None, high_risk: bool = False) -> list[dict]:
@@ -55,13 +56,13 @@ async def run_expert_view(expert: dict, question: str, constitution: list[dict],
     }
 
 
-async def run_all_experts(question: str, high_risk: bool = False) -> list[dict]:
+async def run_all_experts(question: str, high_risk: bool = False, evidence: list[dict] | None = None) -> list[dict]:
     experts = select_experts(question, high_risk=high_risk)
     with db() as connection:
         cur = connection.execute("SELECT * FROM constitution_items WHERE status = 'approved' ORDER BY priority DESC")
         constitution = rows_to_dicts(cur.fetchall())
-        cur = connection.execute("SELECT title, summary, source_class, status FROM knowledge_items WHERE status = 'accepted' ORDER BY created_at DESC LIMIT 8")
-        evidence = rows_to_dicts(cur.fetchall())
+    if evidence is None:
+        evidence = await hybrid_graph_rag(question, limit=10)
     views = []
     for expert in experts:
         views.append(await run_expert_view(expert, question, constitution, evidence))

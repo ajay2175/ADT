@@ -23,6 +23,10 @@ export const adtApi = {
   addKnowledge: (payload) => request("/v1/inbox", { method: "POST", body: JSON.stringify(payload) }),
   reviewKnowledge: (id, action) => request(`/v1/inbox/${id}/review?action=${action}`, { method: "POST" }),
   searchKnowledge: (q) => request(`/v1/knowledge/search?q=${encodeURIComponent(q)}`),
+  graphStatus: () => request("/v1/graph/status"),
+  knowledgeGraph: (id) => request(`/v1/knowledge/${id}/graph`),
+  graphEntities: (q) => request(`/v1/graph/entities?q=${encodeURIComponent(q)}`),
+  graphNeighbors: (id) => request(`/v1/graph/neighbors/${encodeURIComponent(id)}`),
   analyzeDecision: (question, context = {}) =>
     request("/v1/decisions/analyze", { method: "POST", body: JSON.stringify({ question, context }) }),
   listDecisions: () => request("/v1/decisions"),

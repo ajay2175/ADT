@@ -4,7 +4,7 @@ import json
 import uuid
 from typing import Literal
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -14,8 +14,9 @@ from app.decisions import analyze_decision
 from app.drift import run_drift_check
 from app.experts import select_experts
 from app.ingestion import ingest_bytes
+from app.graph import entity_search, graph_status, knowledge_graph, neighbors, project_accepted_knowledge, shortest_path, sync_static_nodes
 from app.model_gateway import get_provider
-from app.retrieval import hybrid_search, vector_search
+from app.retrieval import hybrid_graph_rag, hybrid_search, vector_search
 
 
 class KnowledgeCreate(BaseModel):
@@ -69,6 +70,7 @@ app.add_middleware(
 @app.on_event("startup")
 def startup() -> None:
     setup_database()
+    sync_static_nodes()
 
 
 @app.get("/health")
@@ -78,6 +80,7 @@ def health():
         "service": "adt-vault",
         "database": "postgresql" if settings.use_postgres else "sqlite",
         "llm_provider": settings.llm_provider,
+        "graph": graph_status(),
     }
 
 
@@ -178,7 +181,7 @@ def add_claim(knowledge_id: str, claim: ClaimCreate):
 
 @app.get("/v1/knowledge/search")
 async def search_knowledge(q: str, include_proposed: bool = False):
-    return await hybrid_search(q, include_proposed)
+    return await hybrid_graph_rag(q, include_proposed)
 
 
 @app.get("/v1/knowledge/vector-search")
@@ -187,7 +190,7 @@ async def knowledge_vector_search(q: str, limit: int = 10):
 
 
 @app.post("/v1/inbox/{knowledge_id}/review")
-def review_knowledge(knowledge_id: str, action: Literal["accepted", "rejected", "deferred"]):
+async def review_knowledge(knowledge_id: str, action: Literal["accepted", "rejected", "deferred"], background_tasks: BackgroundTasks):
     with db() as connection:
         if not connection.execute("SELECT id FROM knowledge_items WHERE id = %s", (knowledge_id,)).fetchone():
             raise HTTPException(404, "Knowledge item not found")
@@ -196,7 +199,34 @@ def review_knowledge(knowledge_id: str, action: Literal["accepted", "rejected", 
             "INSERT INTO audit_events VALUES (%s, 'knowledge_reviewed', %s, %s, %s)",
             (str(uuid.uuid4()), knowledge_id, json.dumps({"action": action}), NOW()),
         )
-    return {"id": knowledge_id, "status": action}
+    if action == "accepted":
+        background_tasks.add_task(project_accepted_knowledge, knowledge_id)
+    return {"id": knowledge_id, "status": action, "graph_projection": "scheduled" if action == "accepted" else "not_applicable"}
+
+
+@app.get("/v1/graph/status")
+def get_graph_status():
+    return graph_status()
+
+
+@app.get("/v1/graph/entities")
+def graph_entities(q: str):
+    return entity_search(q)
+
+
+@app.get("/v1/graph/neighbors/{node_id}")
+def graph_neighbors(node_id: str):
+    return neighbors(node_id)
+
+
+@app.get("/v1/graph/path")
+def graph_path(from_id: str, to_id: str, max_hops: int = 4):
+    return {"from": from_id, "to": to_id, "edges": shortest_path(from_id, to_id, max(1, min(max_hops, 6)))}
+
+
+@app.get("/v1/knowledge/{knowledge_id}/graph")
+def knowledge_item_graph(knowledge_id: str):
+    return knowledge_graph(knowledge_id)
 
 
 @app.get("/v1/decisions")

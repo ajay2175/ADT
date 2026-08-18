@@ -57,6 +57,11 @@ export default function App() {
   const [error, setError] = useState("");
   const [drift, setDrift] = useState(null);
   const [backendMeta, setBackendMeta] = useState(null);
+  const [graphMeta, setGraphMeta] = useState(null);
+  const [graphQuery, setGraphQuery] = useState("");
+  const [graphEntities, setGraphEntities] = useState([]);
+  const [selectedGraph, setSelectedGraph] = useState(null);
+  const [itemGraph, setItemGraph] = useState(null);
   const fileRef = useRef(null);
 
   const loadAll = useCallback(async () => {
@@ -64,11 +69,12 @@ export default function App() {
       const health = await adtApi.health();
       setBackendMeta(health);
       setBackendOk(true);
-      const [c, inboxItems, programs, decisions] = await Promise.all([
+      const [c, inboxItems, programs, decisions, graph] = await Promise.all([
         adtApi.constitution(),
         adtApi.inbox(),
         adtApi.researchPrograms(),
         adtApi.listDecisions(),
+        adtApi.graphStatus(),
       ]);
       setConstitution(c);
       setInbox(inboxItems);
@@ -83,6 +89,7 @@ export default function App() {
           created_at: d.created_at,
         }))
       );
+      setGraphMeta(graph);
       setError("");
     } catch (e) {
       setBackendOk(false);
@@ -153,9 +160,28 @@ export default function App() {
 
   async function acceptItem(id) {
     try {
-      await adtApi.reviewKnowledge(id, "accepted");
+      const result = await adtApi.reviewKnowledge(id, "accepted");
       await loadAll();
-      setNotice("Knowledge accepted — now available for decision retrieval.");
+      if (result.graph_projection === "scheduled") {
+        setTimeout(async () => {
+          try {
+            const g = await adtApi.knowledgeGraph(id);
+            setItemGraph(g);
+          } catch {
+            /* graph may still be indexing */
+          }
+        }, 1200);
+      }
+      setNotice("Knowledge accepted — graph indexing scheduled (entities extracted on accept).");
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+
+  async function showGraph(id) {
+    try {
+      setItemGraph(await adtApi.knowledgeGraph(id));
+      setTab("inbox");
     } catch (e) {
       setError(e.message);
     }
@@ -169,6 +195,16 @@ export default function App() {
     } catch (e) {
       setError(e.message);
     }
+  }
+
+  async function searchGraph() {
+    try { setGraphEntities(await adtApi.graphEntities(graphQuery)); setSelectedGraph(null); }
+    catch (e) { setError(e.message); }
+  }
+
+  async function openGraphNode(id) {
+    try { setSelectedGraph(await adtApi.graphNeighbors(id)); }
+    catch (e) { setError(e.message); }
   }
 
   async function doRecall() {
@@ -200,14 +236,14 @@ export default function App() {
       <aside className="sidebar">
         <div className="brand"><span className="brand-mark">A</span><div><b>ADT</b><small>Ajay Digital Twin</small></div></div>
         <nav>
-          {[["brief", "⌂", "Today"], ["inbox", "↓", "Knowledge inbox"], ["memory", "◌", "Memory"], ["constitution", "◇", "Constitution"], ["research", "⌁", "Research"]].map(([id, icon, label]) => (
+          {[["brief", "⌂", "Today"], ["inbox", "↓", "Knowledge inbox"], ["memory", "◌", "Memory"], ["graph", "⌘", "Evidence graph"], ["constitution", "◇", "Constitution"], ["research", "⌁", "Research"]].map(([id, icon, label]) => (
             <button key={id} onClick={() => setTab(id)} className={tab === id ? "active" : ""}>
               <i>{icon}</i>{label}{id === "inbox" && pendingInbox.length ? <em>{pendingInbox.length}</em> : null}
             </button>
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="privacy"><span className={backendOk ? "" : "offline"}>●</span> {backendOk ? `${backendMeta?.database || "backend"} · ${backendMeta?.llm_provider || "mock"}` : backendOk === false ? "Backend offline" : "Connecting…"}</div>
+          <div className="privacy"><span className={backendOk ? "" : "offline"}>●</span> {backendOk ? `${backendMeta?.database || "backend"} · ${backendMeta?.llm_provider || "mock"} · graph ${backendMeta?.graph?.connected ? "on" : "off"}` : backendOk === false ? "Backend offline" : "Connecting…"}</div>
           <button className="profile">A <span>Ajay</span><b>⌄</b></button>
         </div>
       </aside>
@@ -215,7 +251,7 @@ export default function App() {
         <header className="top">
           <div>
             <p className="kicker">{new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }).toUpperCase()}</p>
-            <h1>{tab === "brief" ? "Good morning, Ajay." : tab === "constitution" ? "Constitution of ADT" : tab === "inbox" ? "Knowledge inbox" : tab === "memory" ? "Memory & recall" : "Research program"}</h1>
+            <h1>{tab === "brief" ? "Good morning, Ajay." : tab === "constitution" ? "Constitution of ADT" : tab === "inbox" ? "Knowledge inbox" : tab === "memory" ? "Memory & recall" : tab === "graph" ? "Evidence graph" : "Research program"}</h1>
           </div>
           <div className="top-actions">
             <button className="quiet" onClick={() => fileRef.current?.click()}>↓ Add knowledge</button>
@@ -326,8 +362,22 @@ export default function App() {
                     <button className="quiet" onClick={() => rejectItem(item.id)}>Reject</button>
                   </>
                 )}
+                {item.status === "accepted" && (
+                  <button className="quiet" onClick={() => showGraph(item.id)}>Graph</button>
+                )}
               </article>
             ))}
+            {itemGraph && (
+              <div className="guardrail">
+                <b>Knowledge graph</b>
+                <span>{itemGraph.nodes?.length || 0} nodes · {itemGraph.edges?.length || 0} edges</span>
+                <ul style={{ margin: "8px 0 0", paddingLeft: "18px" }}>
+                  {(itemGraph.nodes || []).slice(0, 8).map((n) => (
+                    <li key={n.id}><b>{n.type}</b>: {n.label}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="guardrail"><b>Constitutional guardrail</b><span>Web references (NIST AI RMF, HL7 FHIR, clinical AI reviews) are seeded as proposed — accept only after review.</span></div>
           </section>
         )}
@@ -374,6 +424,36 @@ export default function App() {
               ))}
             </div>
             <div className="guardrail"><b>Memory protocol</b><span>Decisions retain reasoning records with evidence, assumptions, experts, disagreements, ACA risks, values and uncertainty.</span></div>
+          </section>
+        )}
+
+        {tab === "graph" && (
+          <section className="memory-page">
+            <div className="recall">
+              <p className="kicker">GRAPHRAG · REVIEW-GATED</p>
+              <h2>{graphMeta?.enabled ? "Neo4j projection active" : "SQL graph mirror active"}</h2>
+              <p className="graph-note">Only accepted knowledge enters retrieval. Constitutional values remain protected and cannot be rewritten by extraction.</p>
+              <div><span>⌕</span><input value={graphQuery} onChange={(e) => setGraphQuery(e.target.value)} placeholder="Find an accepted entity…" onKeyDown={(e) => e.key === "Enter" && searchGraph()} /><button className="primary" onClick={searchGraph}>Search graph</button></div>
+            </div>
+            <div className="memory-list">
+              {graphEntities.map((entity) => (
+                <article key={entity.id}>
+                  <span className="memory-type research">{entity.type || "Entity"}</span>
+                  <div><b>{entity.name}</b><p>Accepted graph entity</p></div>
+                  <button className="quiet" onClick={() => openGraphNode(entity.id)}>Neighbors</button>
+                </article>
+              ))}
+              {!graphEntities.length && <div className="guardrail"><b>Graph readiness</b><span>Accept a knowledge item to extract and project its entities. Start Neo4j with: docker compose up neo4j -d</span></div>}
+            </div>
+            {selectedGraph && (
+              <div className="graph-detail">
+                <b>{selectedGraph.node_id}</b>
+                <p>{selectedGraph.neighbors?.length || 0} neighbor(s)</p>
+                {selectedGraph.neighbors?.map((edge, i) => (
+                  <span key={i}>{edge.relation || edge.type} → {edge.label || edge.target}</span>
+                ))}
+              </div>
+            )}
           </section>
         )}
 
