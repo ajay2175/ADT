@@ -55,11 +55,14 @@ export default function App() {
   const [recallQuery, setRecallQuery] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [drift, setDrift] = useState(null);
+  const [backendMeta, setBackendMeta] = useState(null);
   const fileRef = useRef(null);
 
   const loadAll = useCallback(async () => {
     try {
-      await adtApi.health();
+      const health = await adtApi.health();
+      setBackendMeta(health);
       setBackendOk(true);
       const [c, inboxItems, programs, decisions] = await Promise.all([
         adtApi.constitution(),
@@ -123,21 +126,23 @@ export default function App() {
     }
   }
 
+  async function runDriftCheck() {
+    try {
+      const result = await adtApi.driftCheck(decision);
+      setDrift(result);
+      setNotice(result.drift_detected ? `Drift detected: ${(result.flags || []).join(", ")}` : "No significant drift detected.");
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+
   async function handleFileUpload(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const text = await file.text();
-      const ext = file.name.split(".").pop()?.toLowerCase() || "text";
-      const contentType = ext === "md" ? "markdown" : ext === "pdf" ? "pdf" : "text";
-      await adtApi.addKnowledge({
-        title: file.name,
-        content_type: contentType,
-        summary: text.slice(0, 4000) || `Uploaded file: ${file.name}`,
-        source_class: "ajay",
-      });
+      const result = await adtApi.uploadFile(file);
       await loadAll();
-      setNotice(`"${file.name}" received — proposed knowledge only. Constitution unchanged.`);
+      setNotice(`"${file.name}" parsed (${result.chunks} chunks, embedded) — proposed knowledge only.`);
       setTab("inbox");
     } catch (err) {
       setError(err.message);
@@ -183,13 +188,11 @@ export default function App() {
     }
   }
 
-  const expertCards = (analysis?.experts || []).map((ex) => ({
+  const expertCards = (analysis?.expert_views || analysis?.experts || []).map((ex) => ({
     name: ex.name,
-    domain: ex.protocol || (ex.domains || []).join(", "),
-    finding: ex.protocol
-      ? `${ex.name} routed independently via ${ex.protocol}. Synthesis occurs only after expert views are recorded.`
-      : "Independent expert routed for this decision.",
-    signal: ex.id === "dharma_governor" ? "support" : "neutral",
+    domain: ex.domain || ex.protocol || (ex.domains || []).join(", "),
+    finding: ex.finding || ex.protocol || "Independent expert view recorded.",
+    signal: ex.signal || "neutral",
   }));
 
   return (
@@ -204,7 +207,7 @@ export default function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="privacy"><span className={backendOk ? "" : "offline"}>●</span> {backendOk ? "Backend connected" : backendOk === false ? "Backend offline" : "Connecting…"}</div>
+          <div className="privacy"><span className={backendOk ? "" : "offline"}>●</span> {backendOk ? `${backendMeta?.database || "backend"} · ${backendMeta?.llm_provider || "mock"}` : backendOk === false ? "Backend offline" : "Connecting…"}</div>
           <button className="profile">A <span>Ajay</span><b>⌄</b></button>
         </div>
       </aside>
@@ -216,7 +219,7 @@ export default function App() {
           </div>
           <div className="top-actions">
             <button className="quiet" onClick={() => fileRef.current?.click()}>↓ Add knowledge</button>
-            <input ref={fileRef} type="file" accept=".md,.txt,.json" hidden onChange={handleFileUpload} />
+            <input ref={fileRef} type="file" accept=".md,.txt,.json,.pdf,.docx" hidden onChange={handleFileUpload} />
           </div>
         </header>
         {notice && <div className="notice"><span>✓</span>{notice}<button onClick={() => setNotice("")}>×</button></div>}
@@ -232,18 +235,27 @@ export default function App() {
               <article><span className="signal-icon gold-dot">✦</span><div><small>CONSTITUTION</small><b>{constitution.length} approved items loaded</b></div><button onClick={() => setTab("constitution")}>Review →</button></article>
               <article><span className="signal-icon blue-dot">⌁</span><div><small>INBOX</small><b>{pendingInbox.length} item(s) awaiting review</b></div><button onClick={() => setTab("inbox")}>Review →</button></article>
             </section>
-            <section className="section-title"><div><p className="kicker">DECISION WORKBENCH</p><h2>Think with ADT</h2></div><span>Persistent backend · SQLite vault</span></section>
+            <section className="section-title"><div><p className="kicker">DECISION WORKBENCH</p><h2>Think with ADT</h2></div><span>{backendMeta?.database || "sqlite"} · LLM: {backendMeta?.llm_provider || "mock"}</span></section>
             <section id="decision" className="workbench">
               <div className="question-box">
                 <label>What are you deciding?</label>
-                <textarea value={decision} onChange={(e) => { setDecision(e.target.value); setAnalysis(null); }} />
+                <textarea value={decision} onChange={(e) => { setDecision(e.target.value); setAnalysis(null); setDrift(null); }} />
                 <div>
-                  <span>ADT separates facts, assumptions, values, expert routing and uncertainty.</span>
-                  <button className="primary" onClick={runAnalysis} disabled={analyzing || !backendOk}>
-                    {analyzing ? "Analyzing…" : "Run decision engine"} <b>→</b>
-                  </button>
+                  <span>Independent LLM experts → synthesis → persistent reasoning record.</span>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button className="quiet" onClick={runDriftCheck} disabled={!backendOk}>Drift check</button>
+                    <button className="primary" onClick={runAnalysis} disabled={analyzing || !backendOk}>
+                      {analyzing ? "Analyzing…" : "Run decision engine"} <b>→</b>
+                    </button>
+                  </div>
                 </div>
               </div>
+              {drift?.drift_detected && (
+                <div className="guardrail" style={{ margin: "0 25px 16px" }}>
+                  <b>Drift mirror</b>
+                  <span>{drift.mirror} → Re-anchor: {drift.re_anchor} → Action: {drift.action}</span>
+                </div>
+              )}
               {analysis && (
                 <div className="analysis">
                   <div className="analysis-head">
@@ -258,15 +270,18 @@ export default function App() {
                   </div>
                   <div className="decision-grid">
                     <div>
-                      <h4>Values applied</h4>
-                      {(analysis.values_applied || []).map((v) => <Score key={v} label={v} value={85} />)}
+                      <h4>Constitutional fit</h4>
+                      {analysis.scores && Object.entries(analysis.scores).map(([k, v]) => (
+                        <Score key={k} label={k.replace(/_/g, " ")} value={v} tone={k === "energy_efficiency" && v < 65 ? "red" : "gold"} />
+                      ))}
+                      {!analysis.scores && (analysis.values_applied || []).map((v) => <Score key={v} label={v} value={85} />)}
                       {analysis.uncertainty && <p className="uncertainty"><b>Uncertainty:</b> {analysis.uncertainty}</p>}
                     </div>
                     <div className="next">
                       <h4>Next steps</h4>
                       <ol>
                         {(analysis.next_steps || []).map((s, i) => (
-                          <li key={i}><b>{s}</b></li>
+                          <li key={i}><b>{typeof s === "string" ? s : s.step}</b>{typeof s === "object" && s.owner ? <span>Owner: {s.owner} · {s.when}</span> : null}</li>
                         ))}
                       </ol>
                     </div>
@@ -280,7 +295,7 @@ export default function App() {
             </section>
             {expertCards.length > 0 && (
               <>
-                <section className="section-title compact"><div><p className="kicker">INDEPENDENT EXPERT ROUTING</p><h2>Useful disagreement is preserved.</h2></div></section>
+                <section className="section-title compact"><div><p className="kicker">INDEPENDENT EXPERT VIEWS (LLM)</p><h2>Useful disagreement is preserved.</h2></div></section>
                 <section className="experts">
                   {expertCards.map((e) => <Expert key={e.name} {...e} />)}
                 </section>
@@ -295,7 +310,7 @@ export default function App() {
               <span>↓</span>
               <h2>Bring knowledge into the vault</h2>
               <p>Uploads enter as reviewable proposals — never as a silent update to Ajay's constitutional identity.</p>
-              <button className="primary" onClick={() => fileRef.current?.click()}>Upload MD / TXT / JSON</button>
+              <button className="primary" onClick={() => fileRef.current?.click()}>Upload MD / TXT / PDF / DOCX</button>
             </div>
             {inbox.map((item) => (
               <article key={item.id} className="inbox-item">

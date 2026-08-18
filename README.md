@@ -1,41 +1,55 @@
-# ADT Vault — Ajay Digital Twin
+# ADT — Ajay Digital Twin
 
-Dharma-governed meta-intelligence with a **persistent SQLite backend** and React UI.
+Dharma-governed meta-intelligence with persistent backend, model-agnostic LLM gateway, vector retrieval, and constitutional governance.
 
-Flow: `Constitution → upload → retrieval → independent expert routing → decision → memory → recall`
-
-## Run (two terminals)
-
-**Backend** (persistent vault — required):
+## Quick start (SQLite — zero config)
 
 ```bash
+# Terminal 1 — backend
 cd backend
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
+
+# Terminal 2 — frontend
+npm install && npm run dev
 ```
 
-**Frontend**:
+Open http://localhost:5173 · API docs http://127.0.0.1:8000/docs
+
+## Production stack (Postgres + pgvector)
 
 ```bash
-npm install
-npm run dev
+cp .env.example .env
+# Set LLM_PROVIDER=openai and OPENAI_API_KEY=sk-... for real reasoning
+
+docker compose up --build
 ```
 
-Open http://localhost:5173 — sidebar shows **Backend connected** when live.
+Set in `.env`:
+```bash
+ADT_DATABASE_URL=postgresql://adt:adt@localhost:5432/adt
+LLM_PROVIDER=openai   # or anthropic | local | mock
+```
 
-API docs: http://127.0.0.1:8000/docs
+## Phase 2 capabilities (now implemented)
 
-## What the backend holds
+| Feature | Status |
+| --- | --- |
+| Model-agnostic LLM gateway | OpenAI, Anthropic, local/Ollama, mock fallback |
+| Independent LLM expert views | Each routed expert gets its own prompt + JSON response |
+| LLM decision synthesis | Recommendation, scores, next steps, uncertainty — not hardcoded |
+| PDF / DOCX / MD / TXT ingestion | PyMuPDF + python-docx, chunk + embed |
+| Vector retrieval | pgvector (Postgres) or cosine on SQLite embeddings |
+| Hybrid search | Text + vector merge |
+| Live drift-check | LLM inference: mirror → re-anchor → alternative → action |
+| Postgres + pgvector | Docker Compose production path |
+| Persistent UI | All tabs wired to backend across sessions |
 
-- **17 approved constitutional items** — True North, persona, roles, leadership, wealth, parenting, epistemology, guardrails
-- **10 expert profiles** with inspectable independent routing
-- **Knowledge inbox** with provenance, claim status, review lifecycle
-- **Decision + reasoning records** — evidence, assumptions, experts, disagreements, ACA risks, values, uncertainty
-- **ACA research program** registry
-- **Governance / drift-check** endpoint
-- **3 web references** seeded as *proposed* (NIST AI RMF, HL7 FHIR, clinical AI decision-support review)
+## Constitutional invariant
 
-Constitutional identity cannot be changed by uploads or web findings — only via explicit amendment approval.
+**Knowledge can expand; constitutional identity cannot silently change.**
+
+Uploads → proposed knowledge. Amendments → audit event only until Ajay approves.
 
 ## Reset local vault
 
@@ -43,6 +57,8 @@ Constitutional identity cannot be changed by uploads or web findings — only vi
 rm -f data/adt_vault.db
 ```
 
-Restart the backend to re-seed.
+Restart backend to re-seed.
 
-See `docs/PHASE_1_ARCHITECTURE.md` for production architecture milestones.
+## GitHub
+
+https://github.com/ajay2175/ADT
