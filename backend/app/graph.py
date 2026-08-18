@@ -159,6 +159,7 @@ async def index_accepted_knowledge(knowledge_id: str) -> dict:
         return {"indexed": False, "reason": "empty content"}
 
     extracted = await extract_entities_relations(item["title"], text)
+    extracted["title"] = item["title"]
     driver = _get_driver()
     if not driver:
         _mirror_edges_sql(knowledge_id, extracted)
@@ -233,11 +234,28 @@ async def index_accepted_knowledge(knowledge_id: str) -> dict:
 
 def _mirror_edges_sql(knowledge_id: str, extracted: dict) -> None:
     with db() as connection:
+        connection.execute(
+            "INSERT INTO graph_nodes (id, node_type, name, status, protected, metadata, created_at) "
+            "VALUES (%s, 'KnowledgeItem', %s, 'accepted', 0, %s, %s) ON CONFLICT(id) DO NOTHING",
+            (knowledge_id, extracted.get("title", knowledge_id), "{}", NOW()),
+        )
+        for entity in extracted.get("entities", []):
+            key = _entity_key(entity["name"])
+            connection.execute(
+                "INSERT INTO graph_nodes (id, node_type, name, status, protected, metadata, created_at) "
+                "VALUES (%s, %s, %s, 'accepted', 0, %s, %s) ON CONFLICT(id) DO NOTHING",
+                (key, entity.get("type", "Concept"), entity["name"], json.dumps({"confidence": entity.get("confidence", 0.5)}), NOW()),
+            )
         for rel in extracted.get("relations", []):
             edge_id = str(uuid.uuid4())
             connection.execute(
                 "INSERT INTO knowledge_edges VALUES (%s, %s, %s, %s, %s)",
                 (edge_id, knowledge_id, _entity_key(rel["to"]), rel["type"], rel["confidence"]),
+            )
+            connection.execute(
+                "INSERT INTO graph_relations (id, from_id, to_id, relation, weight, status, created_at) "
+                "VALUES (%s, %s, %s, %s, %s, 'accepted', %s)",
+                (str(uuid.uuid4()), knowledge_id, _entity_key(rel["to"]), rel["type"], rel["confidence"], NOW()),
             )
 
 
@@ -394,7 +412,19 @@ def entity_search(q: str, limit: int = 12) -> list[dict]:
         term = f"%{q}%"
         with db() as connection:
             cur = connection.execute(
-                "SELECT to_id AS name, relation AS type, weight AS confidence FROM knowledge_edges WHERE to_id LIKE %s LIMIT %s",
+                """
+                SELECT id, name, node_type AS type, 0.7 AS confidence
+                FROM graph_nodes
+                WHERE protected = 0 AND name LIKE %s AND node_type != 'KnowledgeItem'
+                LIMIT %s
+                """,
+                (term, limit),
+            )
+            rows = rows_to_dicts(cur.fetchall())
+            if rows:
+                return rows
+            cur = connection.execute(
+                "SELECT to_id AS id, to_id AS name, relation AS type, weight AS confidence FROM knowledge_edges WHERE to_id LIKE %s LIMIT %s",
                 (term, limit),
             )
             return rows_to_dicts(cur.fetchall())
