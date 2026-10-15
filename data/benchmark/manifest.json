@@ -1,0 +1,15 @@
+{
+  "dataset_id": "adt-benchmark-v0.5.0",
+  "version": "0.5.0",
+  "frozen_at": "2026-10-15",
+  "fixture_file": "fixtures.json",
+  "categories": ["governance", "ontology", "evidence", "cognition", "causal"],
+  "configs": ["A", "B", "C", "D"],
+  "ablations": {
+    "A": {"padartha": false, "pramana": false, "jnana": false, "dharma_guard": false},
+    "B": {"padartha": true, "pramana": false, "jnana": false, "dharma_guard": false},
+    "C": {"padartha": true, "pramana": true, "jnana": true, "dharma_guard": false},
+    "D": {"padartha": true, "pramana": true, "jnana": true, "dharma_guard": true}
+  },
+  "notes": "Starter fixture set; expand to 1000 cases before publication claims."
+}

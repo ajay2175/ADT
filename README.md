@@ -44,7 +44,7 @@ LLM_PROVIDER=openai   # or anthropic | local | mock
 | Live drift-check | LLM inference: mirror → re-anchor → alternative → action |
 | Postgres + pgvector | Docker Compose production path |
 | GraphRAG (minimal) | Neo4j Docker + extraction on accept + 1-hop graph retrieval |
-| Phase 3–4 (v0.4.0) | Padārtha, Pramāṇa, Jñāna, Dharma Guard, faculty routing, theory/causal engines, A–D eval harness |
+| Phase 3–5 (v0.5.0) | Evidence-gated decision finalize, SQL constitution guard, benchmark manifest + ablations |
 | Persistent UI | All tabs wired to backend across sessions |
 
 ## GraphRAG (Neo4j — optional, free locally)

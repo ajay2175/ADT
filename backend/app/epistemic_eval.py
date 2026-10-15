@@ -11,6 +11,7 @@ from app.database import NOW, db, row_to_dict
 
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = ROOT / "data" / "benchmark" / "fixtures.json"
+MANIFEST = ROOT / "data" / "benchmark" / "manifest.json"
 
 
 class EvalConfig(str, Enum):
@@ -24,6 +25,21 @@ def load_fixtures() -> list[dict]:
     if not FIXTURES.exists():
         return []
     return json.loads(FIXTURES.read_text(encoding="utf-8"))
+
+
+def load_manifest() -> dict:
+    if not MANIFEST.exists():
+        return {"dataset_id": "unknown", "version": "0.0.0"}
+    return json.loads(MANIFEST.read_text(encoding="utf-8"))
+
+
+def run_ablation_suite(client) -> dict:
+    """Run A–D configs and return comparative metrics (deterministic components)."""
+    manifest = load_manifest()
+    reports = {}
+    for cfg in EvalConfig:
+        reports[cfg.value] = run_benchmark(cfg, client)
+    return {"manifest": manifest, "configs": reports}
 
 
 def run_benchmark(config: EvalConfig, client) -> dict:
@@ -46,10 +62,14 @@ def run_benchmark(config: EvalConfig, client) -> dict:
     except AssertionError:
         constitutional_violations = 1
 
+    manifest = load_manifest()
     passed = sum(1 for r in results if r.get("passed"))
     total = len(results)
     metrics = {
         "config": config.value,
+        "dataset_id": manifest.get("dataset_id"),
+        "dataset_version": manifest.get("version"),
+        "ablation": manifest.get("ablations", {}).get(config.value, {}),
         "cases_total": total,
         "cases_passed": passed,
         "pass_rate": round(passed / total, 4) if total else 0.0,

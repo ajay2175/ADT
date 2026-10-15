@@ -79,6 +79,7 @@ def counterfactual(intervention: str, target_effect: str, claims: list[dict] | N
             "intervention": intervention,
             "target_effect": target_effect,
             "result": "inconclusive",
+            "epistemic_label": "simulation_hypothesis",
             "reason": "No accepted causal claims match intervention; association ≠ causation.",
             "matched_claims": [],
         }
@@ -86,6 +87,7 @@ def counterfactual(intervention: str, target_effect: str, claims: list[dict] | N
         "intervention": intervention,
         "target_effect": target_effect,
         "result": "plausible_under_assumptions",
+        "epistemic_label": "simulation_hypothesis",
         "matched_claims": matches[:5],
-        "caveat": "Counterfactual is heuristic until causal assumptions are validated.",
+        "caveat": "Counterfactual output is a simulation hypothesis, not an experimentally established causal result.",
     }

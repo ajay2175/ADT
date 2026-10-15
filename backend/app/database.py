@@ -56,6 +56,10 @@ class SqliteAdapter:
         self.dialect = "sqlite"
 
     def execute(self, sql: str, params=()):
+        from app.persistence_guard import guard_sql_mutation, sql_guard_enabled
+
+        if sql_guard_enabled():
+            guard_sql_mutation(sql)
         return self.conn.execute(sql.replace("%s", "?"), params)
 
     def executemany(self, sql: str, params):
@@ -71,6 +75,10 @@ class PgAdapter:
         self.dialect = "postgres"
 
     def execute(self, sql: str, params=()):
+        from app.persistence_guard import guard_sql_mutation, sql_guard_enabled
+
+        if sql_guard_enabled():
+            guard_sql_mutation(sql)
         cur = self.conn.cursor()
         cur.execute(sql, params)
         return cur
@@ -89,6 +97,16 @@ class PgAdapter:
 
 
 def setup_database() -> None:
+    from app.persistence_guard import disable_sql_guard, enable_sql_guard
+
+    disable_sql_guard()
+    try:
+        _setup_database_impl()
+    finally:
+        enable_sql_guard()
+
+
+def _setup_database_impl() -> None:
     with db() as connection:
         if connection.dialect == "postgres":
             connection.execute("CREATE EXTENSION IF NOT EXISTS vector")
@@ -251,6 +269,13 @@ def setup_database() -> None:
             CREATE TABLE IF NOT EXISTS ontology_proposals (
               id TEXT PRIMARY KEY, proposal_json TEXT NOT NULL, status TEXT NOT NULL,
               created_at TEXT NOT NULL, reviewed_at TEXT
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS decision_assertion_links (
+              id TEXT PRIMARY KEY, decision_id TEXT NOT NULL, assertion_id TEXT NOT NULL,
+              created_at TEXT NOT NULL,
+              FOREIGN KEY(decision_id) REFERENCES decision_records(id)
             )
             """,
         ]:

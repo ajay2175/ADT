@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import uuid
 
+from app.decision_authorization import discover_supporting_assertions, link_assertions_to_decision
 from app.database import NOW, db, rows_to_dicts
 from app.experts import run_all_experts, select_experts
 from app.model_gateway import get_provider, parse_json_block
@@ -64,6 +65,10 @@ async def analyze_decision(question: str, context: dict | None = None) -> dict:
                 raw[:8000],
             ),
         )
+
+    assertion_ids = discover_supporting_assertions(question, context.get("assertion_ids"))
+    if assertion_ids:
+        link_assertions_to_decision(decision_id, assertion_ids)
 
     return {
         "id": decision_id,

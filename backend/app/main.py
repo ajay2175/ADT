@@ -75,7 +75,7 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=8000)
 
 
-app = FastAPI(title="ADT Vault API", version="0.4.0")
+app = FastAPI(title="ADT Vault API", version="0.5.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1:5173", "http://localhost:5173", "http://localhost:3000"],
@@ -268,14 +268,27 @@ async def decisions_analyze(payload: DecisionAnalyze):
 
 
 @app.post("/v1/decisions/{decision_id}/finalize")
-def finalize_decision(decision_id: str, payload: DecisionFinalize):
+def finalize_decision(decision_id: str, payload: DecisionFinalize, exploratory: bool = False):
+    from app.decision_authorization import authorization_report, require_finalize_authorization
+
+    try:
+        require_finalize_authorization(decision_id, exploratory=exploratory)
+    except PermissionError as exc:
+        raise HTTPException(403, str(exc)) from exc
     with db() as connection:
         cur = connection.execute(
             "UPDATE decision_records SET final_decision = %s WHERE id = %s", (payload.final_decision, decision_id)
         )
         if getattr(cur, "rowcount", 0) == 0:
             raise HTTPException(404, "Decision record not found")
-    return {"id": decision_id, "status": "finalized"}
+    return {"id": decision_id, "status": "finalized", "authorization": authorization_report(decision_id, exploratory)}
+
+
+@app.get("/v1/decisions/{decision_id}/authorization")
+def get_decision_authorization(decision_id: str, exploratory: bool = False):
+    from app.decision_authorization import authorization_report
+
+    return authorization_report(decision_id, exploratory=exploratory)
 
 
 @app.get("/v1/decisions/{decision_id}/reasoning-record")
@@ -458,6 +471,23 @@ def semantic_ground(q: str):
 @app.post("/v1/ontology/proposals", status_code=202)
 def post_ontology_proposal(payload: OntologyProposal):
     return propose_ontology_change(payload)
+
+
+@app.get("/v1/evaluation/manifest")
+def evaluation_manifest():
+    from app.epistemic_eval import load_manifest
+
+    return load_manifest()
+
+
+@app.post("/v1/evaluation/ablation-suite")
+def evaluation_ablation_suite():
+    from fastapi.testclient import TestClient
+
+    from app.epistemic_eval import run_ablation_suite
+
+    with TestClient(app) as client:
+        return run_ablation_suite(client)
 
 
 @app.post("/v1/evaluation/run/{config}")
