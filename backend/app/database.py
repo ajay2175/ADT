@@ -55,6 +55,9 @@ class SqliteAdapter:
         self.conn = conn
         self.dialect = "sqlite"
 
+    def begin_immediate(self) -> None:
+        self.conn.execute("BEGIN IMMEDIATE")
+
     def execute(self, sql: str, params=()):
         from app.persistence_guard import guard_sql_mutation, sql_guard_enabled
 
@@ -73,6 +76,10 @@ class PgAdapter:
     def __init__(self, conn):
         self.conn = conn
         self.dialect = "postgres"
+
+    def begin_immediate(self) -> None:
+        """Postgres: transaction already deferred; explicit begin for symmetry."""
+        self.conn.cursor().execute("BEGIN")
 
     def execute(self, sql: str, params=()):
         from app.persistence_guard import guard_sql_mutation, sql_guard_enabled
@@ -163,7 +170,9 @@ def _setup_database_impl() -> None:
             CREATE TABLE IF NOT EXISTS decision_records (
               id TEXT PRIMARY KEY, question TEXT NOT NULL, context TEXT NOT NULL,
               recommendation TEXT NOT NULL, confidence REAL NOT NULL,
-              review_date TEXT, final_decision TEXT, created_at TEXT NOT NULL
+              review_date TEXT, final_decision TEXT, created_at TEXT NOT NULL,
+              finalize_kind TEXT, action_capabilities_json TEXT,
+              evidence_link_version INTEGER NOT NULL DEFAULT 0
             )
             """,
             """
@@ -278,6 +287,14 @@ def _setup_database_impl() -> None:
               FOREIGN KEY(decision_id) REFERENCES decision_records(id)
             )
             """,
+            """
+            CREATE TABLE IF NOT EXISTS decision_authorization_grants (
+              id TEXT PRIMARY KEY, decision_id TEXT NOT NULL, kind TEXT NOT NULL,
+              snapshot_json TEXT NOT NULL, expires_at TEXT NOT NULL, used_at TEXT,
+              created_at TEXT NOT NULL,
+              FOREIGN KEY(decision_id) REFERENCES decision_records(id)
+            )
+            """,
         ]:
             if connection.dialect == "sqlite":
                 connection.executescript(ddl)
@@ -299,6 +316,14 @@ def _migrate_schema(connection) -> None:
         connection.execute("ALTER TABLE reasoning_records ADD COLUMN expert_views TEXT DEFAULT '[]'")
     if "synthesis" not in cols:
         connection.execute("ALTER TABLE reasoning_records ADD COLUMN synthesis TEXT DEFAULT ''")
+    cur = connection.execute("PRAGMA table_info(decision_records)")
+    dcols = {row[1] for row in cur.fetchall()}
+    if "finalize_kind" not in dcols:
+        connection.execute("ALTER TABLE decision_records ADD COLUMN finalize_kind TEXT")
+    if "action_capabilities_json" not in dcols:
+        connection.execute("ALTER TABLE decision_records ADD COLUMN action_capabilities_json TEXT")
+    if "evidence_link_version" not in dcols:
+        connection.execute("ALTER TABLE decision_records ADD COLUMN evidence_link_version INTEGER NOT NULL DEFAULT 0")
 
 
 def _seed_if_empty(connection) -> None:

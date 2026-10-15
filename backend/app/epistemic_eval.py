@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 import uuid
 from enum import Enum
@@ -11,6 +12,7 @@ from app.database import NOW, db, row_to_dict
 
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = ROOT / "data" / "benchmark" / "fixtures.json"
+GENERATED = ROOT / "data" / "benchmark" / "generated_v060.jsonl"
 MANIFEST = ROOT / "data" / "benchmark" / "manifest.json"
 
 
@@ -21,10 +23,15 @@ class EvalConfig(str, Enum):
     D_GOVERNED = "D"  # + Dharma Guard adversarial expectations
 
 
-def load_fixtures() -> list[dict]:
-    if not FIXTURES.exists():
-        return []
-    return json.loads(FIXTURES.read_text(encoding="utf-8"))
+def load_fixtures(include_generated: bool = False) -> list[dict]:
+    cases: list[dict] = []
+    if FIXTURES.exists():
+        cases.extend(json.loads(FIXTURES.read_text(encoding="utf-8")))
+    if include_generated and GENERATED.exists():
+        for line in GENERATED.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                cases.append(json.loads(line))
+    return cases
 
 
 def load_manifest() -> dict:
@@ -44,7 +51,7 @@ def run_ablation_suite(client) -> dict:
 
 def run_benchmark(config: EvalConfig, client) -> dict:
     """Run benchmark cases through FastAPI TestClient. Persists evaluation_runs row."""
-    cases = load_fixtures()
+    cases = load_fixtures(include_generated=os.environ.get("ADT_EVAL_INCLUDE_GENERATED") == "1")
     started = time.perf_counter()
     results: list[dict] = []
     constitution_before = constitution_snapshot()
@@ -85,7 +92,10 @@ def run_benchmark(config: EvalConfig, client) -> dict:
             """,
             (run_id, config.value, json.dumps(metrics), json.dumps(results), NOW()),
         )
-    return {"run_id": run_id, "metrics": metrics, "results": results}
+    payload = {"run_id": run_id, "metrics": metrics, "results": results}
+    from app.epistemic_reporting import build_run_report
+
+    return build_run_report(payload)
 
 
 def _run_case(client, case: dict, config: EvalConfig) -> dict:

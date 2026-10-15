@@ -27,6 +27,7 @@ from app.graph import entity_search, graph_status, knowledge_graph, neighbors, p
 from app.jnana import CognitiveStateRecord, JnanaState, get_state, transition
 from app.model_gateway import get_provider
 from app.padartha import GraphAssertion, create_assertion, list_assertions
+from app.action_capabilities import ActionCapability, FinalizeKind, require_decision_capability
 from app.pramana import EvidenceRecord, add_evidence, ledger_for_assertion
 
 
@@ -50,6 +51,8 @@ class DecisionAnalyze(BaseModel):
 
 class DecisionFinalize(BaseModel):
     final_decision: str = Field(min_length=2, max_length=4000)
+    grant_id: str | None = None
+    kind: FinalizeKind = FinalizeKind.CONSEQUENTIAL
 
 
 class ClaimCreate(BaseModel):
@@ -75,7 +78,7 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=8000)
 
 
-app = FastAPI(title="ADT Vault API", version="0.5.0")
+app = FastAPI(title="ADT Vault API", version="0.6.1")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1:5173", "http://localhost:5173", "http://localhost:3000"],
@@ -267,28 +270,77 @@ async def decisions_analyze(payload: DecisionAnalyze):
     return await analyze_decision(payload.question, payload.context)
 
 
-@app.post("/v1/decisions/{decision_id}/finalize")
-def finalize_decision(decision_id: str, payload: DecisionFinalize, exploratory: bool = False):
-    from app.decision_authorization import authorization_report, require_finalize_authorization
+@app.post("/v1/decisions/{decision_id}/authorize")
+def authorize_decision(decision_id: str, payload: DecisionFinalize):
+    from app.decision_authorization import issue_authorization_grant
 
     try:
-        require_finalize_authorization(decision_id, exploratory=exploratory)
+        report = issue_authorization_grant(decision_id, payload.kind, payload.final_decision)
     except PermissionError as exc:
         raise HTTPException(403, str(exc)) from exc
-    with db() as connection:
-        cur = connection.execute(
-            "UPDATE decision_records SET final_decision = %s WHERE id = %s", (payload.final_decision, decision_id)
+    return report
+
+
+@app.post("/v1/decisions/{decision_id}/finalize")
+def finalize_decision(decision_id: str, payload: DecisionFinalize):
+    from app.decision_authorization import authorization_report, finalize_decision_atomically
+
+    kind = payload.kind
+    try:
+        auth = finalize_decision_atomically(
+            decision_id, kind, payload.final_decision, grant_id=payload.grant_id
         )
-        if getattr(cur, "rowcount", 0) == 0:
-            raise HTTPException(404, "Decision record not found")
-    return {"id": decision_id, "status": "finalized", "authorization": authorization_report(decision_id, exploratory)}
+    except ValueError:
+        raise HTTPException(404, "Decision record not found") from None
+    except PermissionError as exc:
+        raise HTTPException(403, str(exc)) from exc
+    return {
+        "id": decision_id,
+        "status": "finalized",
+        "kind": kind.value,
+        "capabilities": auth.get("capabilities", []),
+        "authorization": authorization_report(decision_id, kind, payload.final_decision),
+        "grant": auth,
+    }
+
+
+class ConsequentialActionRequest(BaseModel):
+    action_type: Literal["consequential_workflow", "clinical", "external_tool", "protected_mutation"] = (
+        "consequential_workflow"
+    )
+    payload: dict = Field(default_factory=dict)
+
+
+@app.post("/v1/decisions/{decision_id}/actions/execute")
+def execute_decision_action(decision_id: str, body: ConsequentialActionRequest):
+    capability_map = {
+        "consequential_workflow": ActionCapability.EXECUTE_CONSEQUENTIAL,
+        "clinical": ActionCapability.CLINICAL_ACTION,
+        "external_tool": ActionCapability.EXTERNAL_TOOL,
+        "protected_mutation": ActionCapability.PROTECTED_MUTATION,
+    }
+    try:
+        require_decision_capability(decision_id, capability_map[body.action_type])
+    except PermissionError as exc:
+        raise HTTPException(403, str(exc)) from exc
+    return {
+        "decision_id": decision_id,
+        "action_type": body.action_type,
+        "status": "queued",
+        "note": "Capability check passed; action handler is a stub for v0.6.1 governance tests.",
+        "payload": body.payload,
+    }
 
 
 @app.get("/v1/decisions/{decision_id}/authorization")
-def get_decision_authorization(decision_id: str, exploratory: bool = False):
+def get_decision_authorization(
+    decision_id: str,
+    kind: FinalizeKind = FinalizeKind.CONSEQUENTIAL,
+    final_decision: str = "",
+):
     from app.decision_authorization import authorization_report
 
-    return authorization_report(decision_id, exploratory=exploratory)
+    return authorization_report(decision_id, kind, final_decision)
 
 
 @app.get("/v1/decisions/{decision_id}/reasoning-record")
@@ -501,3 +553,29 @@ def evaluation_run(config: EvalConfig):
 @app.get("/v1/evaluation/runs")
 def evaluation_runs(limit: int = 20):
     return list_evaluation_runs(limit)
+
+
+class EntailmentRequest(BaseModel):
+    claim: str = Field(min_length=2, max_length=4000)
+    passage: str = Field(min_length=2, max_length=8000)
+
+
+@app.post("/v1/epistemic/pramana/entailment")
+def pramana_entailment(body: EntailmentRequest):
+    from app.pramana_entailment import classify_entailment
+
+    return classify_entailment(body.claim, body.passage)
+
+
+@app.get("/v1/domain/vaidya-mitra/benchmark")
+def vaidya_mitra_benchmark():
+    from app.domain_vaidya_mitra import list_vaidya_benchmark_cases
+
+    return list_vaidya_benchmark_cases()
+
+
+@app.post("/v1/evaluation/benchmark/generate")
+def evaluation_benchmark_generate(seed: int = 42):
+    from app.benchmark_generator import generate_dataset
+
+    return generate_dataset(seed=seed)

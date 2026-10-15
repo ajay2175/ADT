@@ -42,6 +42,11 @@ def guard_sql_mutation(sql: str) -> None:
         result = authorize(GuardAction.CONSTITUTION_WRITE, ctx or {})
         if not result.get("allowed"):
             raise PermissionError(result.get("reason", "constitution write denied"))
+    if PROTECTED_GRAPH_MUTATIONS.search(sql) and any(k in lower for k in ("update", "delete")):
+        ctx = _amendment.get()
+        result = authorize(GuardAction.GRAPH_PROTECTED_NODE_WRITE, ctx or {})
+        if not result.get("allowed"):
+            raise PermissionError(result.get("reason", "protected graph mutation denied"))
 
 
 @contextmanager

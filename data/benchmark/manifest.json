@@ -1,9 +1,18 @@
 {
-  "dataset_id": "adt-benchmark-v0.5.0",
-  "version": "0.5.0",
+  "dataset_id": "adt-benchmark-v0.6.0",
+  "version": "0.6.1",
   "frozen_at": "2026-10-15",
   "fixture_file": "fixtures.json",
-  "categories": ["governance", "ontology", "evidence", "cognition", "causal"],
+  "reviewed_fixture_file": "reviewed_fixtures.json",
+  "generated_file": "generated_v060.jsonl",
+  "categories": [
+    "factual_grounding",
+    "contradiction_uncertainty",
+    "ontology_grounding",
+    "causal_reasoning",
+    "constitutional_attack",
+    "expert_routing"
+  ],
   "configs": ["A", "B", "C", "D"],
   "ablations": {
     "A": {"padartha": false, "pramana": false, "jnana": false, "dharma_guard": false},
@@ -11,5 +20,5 @@
     "C": {"padartha": true, "pramana": true, "jnana": true, "dharma_guard": false},
     "D": {"padartha": true, "pramana": true, "jnana": true, "dharma_guard": true}
   },
-  "notes": "Starter fixture set; expand to 1000 cases before publication claims."
+  "notes": "Starter human-reviewed fixtures plus optional generated_v060.jsonl (1000 synthetic cases) when ADT_EVAL_INCLUDE_GENERATED=1."
 }

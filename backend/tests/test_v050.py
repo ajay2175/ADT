@@ -34,14 +34,14 @@ def test_finalize_blocked_without_valid_assertions(client: TestClient):
     assert fin.status_code == 403
 
 
-def test_finalize_exploratory_allowed(client: TestClient):
+def test_finalize_research_record_allowed(client: TestClient):
     r = client.post(
         "/v1/decisions/analyze",
         json={"question": "Should we explore ACA staging as a research hypothesis only?", "context": {}},
     ).json()
     fin = client.post(
-        f"/v1/decisions/{r['id']}/finalize?exploratory=true",
-        json={"final_decision": "Explore only"},
+        f"/v1/decisions/{r['id']}/finalize",
+        json={"final_decision": "Explore only — research record", "kind": "research_record"},
     )
     assert fin.status_code == 200
 

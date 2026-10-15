@@ -47,7 +47,11 @@ async def analyze_decision(question: str, context: dict | None = None) -> dict:
 
     with db() as connection:
         connection.execute(
-            "INSERT INTO decision_records VALUES (%s, %s, %s, %s, %s, NULL, NULL, %s)",
+            """
+            INSERT INTO decision_records
+            (id, question, context, recommendation, confidence, review_date, final_decision, created_at)
+            VALUES (%s, %s, %s, %s, %s, NULL, NULL, %s)
+            """,
             (decision_id, question, json.dumps(context), recommendation, confidence, NOW()),
         )
         connection.execute(
