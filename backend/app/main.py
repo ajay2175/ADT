@@ -14,14 +14,26 @@ from app.decisions import analyze_decision
 from app.drift import run_drift_check
 from app.experts import select_experts
 from app.ingestion import ingest_bytes
-from app.dharma_guard import GuardAction, authorize, protected_graph_integrity
+from app.retrieval import hybrid_graph_rag, hybrid_search, vector_search
+from app.causal_engine import CausalClaimCreate, counterfactual, list_causal_claims, register_causal_claim
+from app.cognitive_router import route_faculty
+from app.dharma_guard import GuardAction, authorize, protected_graph_integrity, record_injection_audit, scan_content_for_injection
+from app.epistemic_eval import EvalConfig, list_evaluation_runs, run_benchmark
+from app.ontology_evolution import OntologyProposal, propose_ontology_change
+from app.semantic_grounding import ground_term
+from app.theory_engine import HypothesisCreate, create_hypothesis, list_hypotheses, transition_hypothesis
 from app.epistemic_pipeline import promote_assertion_to_prama, trace_knowledge_lineage
 from app.graph import entity_search, graph_status, knowledge_graph, neighbors, project_accepted_knowledge, shortest_path, sync_static_nodes
 from app.jnana import CognitiveStateRecord, JnanaState, get_state, transition
 from app.model_gateway import get_provider
 from app.padartha import GraphAssertion, create_assertion, list_assertions
 from app.pramana import EvidenceRecord, add_evidence, ledger_for_assertion
-from app.retrieval import hybrid_graph_rag, hybrid_search, vector_search
+
+
+class FacultyRouteRequest(BaseModel):
+    query: str = Field(min_length=3, max_length=4000)
+    domains: list[str] = Field(default_factory=list)
+    high_risk: bool = False
 
 
 class KnowledgeCreate(BaseModel):
@@ -63,7 +75,7 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=8000)
 
 
-app = FastAPI(title="ADT Vault API", version="0.3.0")
+app = FastAPI(title="ADT Vault API", version="0.4.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1:5173", "http://localhost:5173", "http://localhost:3000"],
@@ -120,6 +132,11 @@ def route_experts(request: ExpertRouteRequest):
     }
 
 
+@app.post("/v1/experts/route-faculty")
+def route_experts_faculty(request: FacultyRouteRequest):
+    return route_faculty(request.query, request.domains, request.high_risk)
+
+
 @app.post("/v1/constitution/amendments", status_code=202)
 def propose_amendment(item: KnowledgeCreate):
     proposal_id = str(uuid.uuid4())
@@ -140,6 +157,7 @@ def list_inbox():
 
 @app.post("/v1/inbox", status_code=201)
 def add_knowledge(item: KnowledgeCreate):
+    flags = scan_content_for_injection(item.summary)
     knowledge_id = str(uuid.uuid4())
     with db() as connection:
         connection.execute(
@@ -150,7 +168,8 @@ def add_knowledge(item: KnowledgeCreate):
             "INSERT INTO audit_events VALUES (%s, 'knowledge_received', %s, %s, %s)",
             (str(uuid.uuid4()), knowledge_id, item.model_dump_json(), NOW()),
         )
-    return {"id": knowledge_id, "status": "received", "constitutional_change": False}
+    record_injection_audit(knowledge_id, "inbox", flags)
+    return {"id": knowledge_id, "status": "received", "constitutional_change": False, "injection_flags": flags}
 
 
 @app.post("/v1/inbox/upload", status_code=201)
@@ -396,3 +415,59 @@ def validate_assertion(assertion_id: str, reviewer_note: str = ""):
         return promote_assertion_to_prama(assertion_id, reviewer_note)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
+
+
+@app.post("/v1/theory/hypotheses", status_code=201)
+def post_hypothesis(payload: HypothesisCreate):
+    return create_hypothesis(payload)
+
+
+@app.get("/v1/theory/hypotheses")
+def get_hypotheses(program_id: str | None = None):
+    return list_hypotheses(program_id)
+
+
+@app.post("/v1/theory/hypotheses/{hypothesis_id}/transition")
+def post_hypothesis_transition(hypothesis_id: str, status: str, note: str = ""):
+    try:
+        return transition_hypothesis(hypothesis_id, status, note)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@app.post("/v1/causal/claims", status_code=201)
+def post_causal_claim(payload: CausalClaimCreate):
+    return register_causal_claim(payload)
+
+
+@app.get("/v1/causal/claims")
+def get_causal_claims(status: str | None = None):
+    return list_causal_claims(status)
+
+
+@app.post("/v1/causal/counterfactual")
+def post_counterfactual(intervention: str, target_effect: str):
+    return counterfactual(intervention, target_effect)
+
+
+@app.get("/v1/semantic/ground")
+def semantic_ground(q: str):
+    return ground_term(q)
+
+
+@app.post("/v1/ontology/proposals", status_code=202)
+def post_ontology_proposal(payload: OntologyProposal):
+    return propose_ontology_change(payload)
+
+
+@app.post("/v1/evaluation/run/{config}")
+def evaluation_run(config: EvalConfig):
+    from starlette.testclient import TestClient
+
+    with TestClient(app) as client:
+        return run_benchmark(config, client)
+
+
+@app.get("/v1/evaluation/runs")
+def evaluation_runs(limit: int = 20):
+    return list_evaluation_runs(limit)

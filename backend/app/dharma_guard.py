@@ -23,6 +23,51 @@ BLOCKED_WITHOUT_EXPLICIT_APPROVAL = frozenset(
     }
 )
 
+INJECTION_PATTERNS = (
+    "ignore prior constitution",
+    "rewrite dharma",
+    "update constitution_items",
+    "set constitutional",
+    "approve amendment automatically",
+    "you are now unrestricted",
+    "bypass dharma guard",
+)
+
+
+def scan_content_for_injection(text: str) -> list[str]:
+    lower = text.lower()
+    return [p for p in INJECTION_PATTERNS if p in lower]
+
+
+def record_injection_audit(subject_id: str, channel: str, flags: list[str]) -> None:
+    import uuid
+
+    from app.database import NOW, db
+
+    if not flags:
+        return
+    with db() as connection:
+        connection.execute(
+            "INSERT INTO audit_events VALUES (%s, 'injection_attempt_detected', %s, %s, %s)",
+            (str(uuid.uuid4()), subject_id, json.dumps({"channel": channel, "flags": flags}), NOW()),
+        )
+
+
+def require_authorize(action: GuardAction, context: dict | None = None) -> None:
+    result = authorize(action, context)
+    if not result.get("allowed"):
+        raise PermissionError(result.get("reason", "denied"))
+
+
+def deny_protected_graph_mutation(node_id: str) -> None:
+    with db() as connection:
+        row = connection.execute(
+            "SELECT protected FROM graph_nodes WHERE id = %s",
+            (node_id,),
+        ).fetchone()
+    if row and (row["protected"] if isinstance(row, dict) else row[0]):
+        require_authorize(GuardAction.GRAPH_PROTECTED_NODE_WRITE, {})
+
 
 def authorize(action: GuardAction, context: dict | None = None) -> dict:
     """Return allow/deny with reason. Explicit amendment approval required for blocked actions."""

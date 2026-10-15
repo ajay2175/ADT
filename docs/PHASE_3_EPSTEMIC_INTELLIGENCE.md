@@ -59,11 +59,15 @@ On knowledge **accept** (document admission only):
 - [x] Accepted documents → proposed Padārtha assertions (`epistemic_pipeline.py`)
 - [x] Source-level Pramāṇa on each assertion (proposed; not truth-validated)
 - [x] Jñāna transitions on extraction; promotion gated on Pramāṇa
-- [ ] Dharma Guard on every mutation path (partial — API gates + integrity tests)
-- [ ] Full E2E ingestion → decision audit
-- [ ] Frozen A–D benchmark dataset and results
+- [x] Dharma Guard injection audit + adversarial tests (v0.4.0; not every write path)
+- [x] Faculty routing, theory/causal engines, benchmark harness (`data/benchmark/fixtures.json`)
+- [ ] Full E2E ingestion → decision audit with epistemic gates
+- [ ] Frozen 1k-case A–D benchmark publication
 
+## Sprints 2–5 (shipped in v0.4.0)
 
-`cognitive_router.py`, `semantic_grounding.py`, `causal_engine.py`, `theory_engine.py`, `ontology_evolution.py`, `epistemic_eval.py` — Sprint 6–8.
+See modules: `cognitive_router.py`, `semantic_grounding.py`, `theory_engine.py`, `causal_engine.py`, `epistemic_eval.py`, `ontology_evolution.py` (proposals only).
+
+Run benchmarks: `POST /v1/evaluation/run/A` through `D`. Tests: `pytest backend/tests/ -q`.
 
 Autonomous ontology modification remains **after** governance and evidence tests pass.

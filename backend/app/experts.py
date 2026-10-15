@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+from app.cognitive_router import route_faculty
 from app.database import db, rows_to_dicts
 from app.model_gateway import get_provider, parse_json_block
 from app.retrieval import hybrid_graph_rag
@@ -56,8 +57,18 @@ async def run_expert_view(expert: dict, question: str, constitution: list[dict],
     }
 
 
-async def run_all_experts(question: str, high_risk: bool = False, evidence: list[dict] | None = None) -> list[dict]:
-    experts = select_experts(question, high_risk=high_risk)
+async def run_all_experts(
+    question: str,
+    high_risk: bool = False,
+    evidence: list[dict] | None = None,
+    use_faculty: bool = True,
+    requested_domains: list[str] | None = None,
+) -> list[dict]:
+    if use_faculty:
+        routed = route_faculty(question, requested_domains, high_risk)
+        experts = routed["experts"]
+    else:
+        experts = select_experts(question, requested_domains, high_risk)
     with db() as connection:
         cur = connection.execute("SELECT * FROM constitution_items WHERE status = 'approved' ORDER BY priority DESC")
         constitution = rows_to_dicts(cur.fetchall())

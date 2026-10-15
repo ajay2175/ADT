@@ -227,6 +227,32 @@ def setup_database() -> None:
               state TEXT NOT NULL, note TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT
             )
             """,
+            """
+            CREATE TABLE IF NOT EXISTS theory_hypotheses (
+              id TEXT PRIMARY KEY, program_id TEXT NOT NULL, title TEXT NOT NULL,
+              statement TEXT NOT NULL, status TEXT NOT NULL, assumptions_json TEXT NOT NULL,
+              outcome_json TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS causal_claims (
+              id TEXT PRIMARY KEY, cause TEXT NOT NULL, effect TEXT NOT NULL,
+              assumptions_json TEXT NOT NULL, justification TEXT NOT NULL, status TEXT NOT NULL,
+              hypothesis_id TEXT, relation_kind TEXT NOT NULL, created_at TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS evaluation_runs (
+              id TEXT PRIMARY KEY, config TEXT NOT NULL, metrics_json TEXT NOT NULL,
+              results_json TEXT NOT NULL, created_at TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS ontology_proposals (
+              id TEXT PRIMARY KEY, proposal_json TEXT NOT NULL, status TEXT NOT NULL,
+              created_at TEXT NOT NULL, reviewed_at TEXT
+            )
+            """,
         ]:
             if connection.dialect == "sqlite":
                 connection.executescript(ddl)
