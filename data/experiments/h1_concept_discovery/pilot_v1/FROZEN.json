@@ -44,5 +44,11 @@
     "llm_backbone": "TO_BE_FILLED_BEFORE_OFFICIAL_RUN",
     "embedding_model": "TO_BE_FILLED_BEFORE_OFFICIAL_RUN"
   },
-  "notes": "Template observations are protocol placeholders; replace adjudication blocks before official test split scoring."
+  "calibration_set": {
+    "path": "calibration/ayurveda_10_cases.jsonl",
+    "n": 10,
+    "purpose": "rubric_calibration_not_confirmatory",
+    "exploratory_revision_cases": ["cal-ayur-008", "cal-ayur-009"]
+  },
+  "notes": "Replace test-split placeholders with sourced observations before official run. Calibration 10 is separate from 40-case confirmatory test."
 }

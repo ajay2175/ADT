@@ -103,7 +103,13 @@ Methodological reviewer records COI statements; conflicted reviewers abstain fro
 
 ---
 
-## 10. Pilot v1 evaluation plan (frozen)
+## 10. Calibration set (10 Ayurveda — not confirmatory)
+
+Use `calibration/ayurveda_10_cases.jsonl` to align rubric interpretation **before** scoring the 40-case `test` split. If protocol or rubric changes after calibration, those 10 remain **calibration/development** only. Record scores using `calibration/adjudication_record_schema.json`.
+
+Cases `cal-ayur-008` / `009` support **exploratory** category-revision analysis (H1/H2); not a new confirmatory criterion.
+
+## 11. Pilot v1 evaluation plan (frozen)
 
 | Item | Value |
 |------|--------|

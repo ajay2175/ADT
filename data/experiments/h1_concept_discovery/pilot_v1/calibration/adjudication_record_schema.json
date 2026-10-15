@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "required_fields": [
+    "observation_id",
+    "classical_source",
+    "dravya",
+    "guna",
+    "karma",
+    "seed_ontology_status",
+    "candidate_samanya",
+    "counterexamples",
+    "lexical_novelty_score",
+    "structural_novelty_score",
+    "functional_novelty_held_out_utility",
+    "expert_judgment",
+    "dissent_recorded"
+  ],
+  "expert_judgment_enum": ["accept", "reject", "uncertain"],
+  "functional_novelty_source": "automated_ablation_plus_panel_utility_score",
+  "panel_must_not": "determine_baseline_win_from_subjective_impression"
+}
