@@ -1,0 +1,25 @@
+{
+  "$schema": "adt-h1-candidate-proposal-v1",
+  "description": "Research proposal only — never auto-applied to production ontology",
+  "fields": {
+    "proposal_id": "uuid",
+    "samanya_label": "deterministic or expert-renamed slug",
+    "signature": { "guna": [], "karma": [] },
+    "source_lineage": {
+      "observation_ids": [],
+      "domains": [],
+      "derivation": "visesa_cluster | counterexample_audit"
+    },
+    "visesha_attachments": [],
+    "abhava_attachments": [],
+    "novelty_check": { "jaccard_max_vs_seed": 0.0, "passed": false },
+    "pramana_status": "proposed | accepted | rejected",
+    "jnana_status": "samsaya | prama | viparyaya",
+    "h2_flags": {
+      "contradictions": [],
+      "uncertainty_notes": [],
+      "revision_history": []
+    },
+    "rejection_reason": ""
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "version": "h1-pilot-v1-seed",
+  "samanya": [
+    "classical_rasayana_dravya",
+    "standard_deepana_herb",
+    "perovskite_prototype_a"
+  ],
+  "dravya": [],
+  "guna": [
+    "tikta",
+    "madhura",
+    "kashaya",
+    "laghu",
+    "guru",
+    "ushna",
+    "snigdha",
+    "ruksha",
+    "tolerance_high",
+    "tolerance_low",
+    "ionic_radius_match",
+    "crystal_stable"
+  ],
+  "karma": [
+    "deepana",
+    "rasayana",
+    "medhya",
+    "shothahara",
+    "immune_modulation",
+    "sleep_latency",
+    "bandgap_stable",
+    "ferroelectric",
+    "ionic_conductivity",
+    "phase_transition"
+  ]
+}

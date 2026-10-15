@@ -1,6 +1,6 @@
 # Experiment 1 — Emergence of New Knowledge (H1)
 
-**Track A milestone (primary)** · Protocol version **1.0.0**  
+**Track A milestone (primary)** · Protocol version **1.1.0** (H1 first; H2 embedded in validation; H3 follows)  
 **Hypotheses:** Universal Cognitive Grammar · Self-Evolving Knowledge · Knowledge Interoperability  
 **Platform:** ADT ≥ `eb588a3`; run via `python -m app.experiments.run_h1`
 
@@ -113,14 +113,30 @@ Cross-domain: train abstractions on Vaidya `O_train`, test on materials `O*_held
 
 ---
 
-## 5. Datasets
+## 5. Pilot v1 dataset (120 cases — proposed design)
+
+| Parameter | Value |
+|-----------|--------|
+| Total | 120 (60 Ayurveda · 60 materials science) |
+| Splits | 60 development · 20 validation · 40 test |
+| Primary metric | Held-out **transfer** improvement on `test` |
+| Panel | 3 blinded evaluators (domain · AI/ontology · integrity) |
 
 | File | Role |
 |------|------|
-| `data/experiments/h1_concept_discovery/seed_ontology.json` | Frozen Σ |
-| `data/experiments/h1_concept_discovery/train_observations.json` | `O_train` (dev + train splits in records) |
-| `data/experiments/h1_concept_discovery/held_out.json` | `O_held` (no labels in runner input; labels in `adjudication` block for scoring) |
-| `data/experiments/h1_concept_discovery/manifest.json` | Version hash, metrics, rubric |
+| `pilot_v1/FROZEN.json` | Freeze manifest, success criteria, model slots |
+| `pilot_v1/seed_ontology.json` | Frozen Σ for pilot |
+| `pilot_v1/observations.jsonl` | All 120 Viśeṣa records with split tags |
+| `pilot_v1/expert_rubric.json` | Blinded scoring rubric |
+| `pilot_v1/candidate_proposal_schema.json` | Proposal + lineage format |
+
+Legacy seed files (`train_observations.json`, `held_out.json`) remain for unit tests only.
+
+**Official pilot runner:** `python -m app.experiments.run_h1_pilot --freeze-dataset --seed 42`
+
+Outputs: `pilot_v1/runs/<commit>_seed42/` → `pilot_full_trace.json`, `blinded_evaluation_packets.json`, `pilot_summary.json`.
+
+**Inconclusive policy:** If `adjudication.ground_truth_ready` is false on test split, status = `inconclusive` (not success).
 
 **Splits:** Runner accepts `--split held_out` only for official numbers; `dev` for debugging.
 

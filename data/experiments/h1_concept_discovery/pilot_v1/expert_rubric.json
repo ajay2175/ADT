@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "scales": {
+    "novelty": { "min": 1, "max": 5, "anchor_5": "Not present in seed ontology; not a rename of existing category" },
+    "validity": { "min": 1, "max": 5, "anchor_5": "Supported by observations; survives stated counterexamples" },
+    "utility": { "min": 1, "max": 5, "anchor_5": "Would improve prediction/reasoning on held-out instances" }
+  },
+  "roles": {
+    "domain_expert": ["validity", "utility"],
+    "ai_ontology_researcher": ["novelty", "validity"],
+    "independent_integrity": ["validity", "evidence_trace_completeness"]
+  },
+  "disagreement": "Document dissent; majority median per dimension; no unilateral success by project lead"
+}

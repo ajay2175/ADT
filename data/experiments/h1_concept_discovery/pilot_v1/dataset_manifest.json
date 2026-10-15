@@ -1,0 +1,11 @@
+{
+  "counts": {
+    "total": 120,
+    "vaidya_mitra": 60,
+    "materials_science": 60,
+    "development": 60,
+    "validation": 20,
+    "test": 40
+  },
+  "seed": 42
+}
