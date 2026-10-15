@@ -1,0 +1,23 @@
+[
+  {
+    "id": "h2-vaidya-001",
+    "split": "held_out",
+    "task": "H2-T2",
+    "domain": "vaidya_mitra",
+    "sabda": "Classical line states Guduchi is always contraindicated in pregnancy without exception.",
+    "misleading": true,
+    "counter_evidence": "Later commentary and pharmacovigilance summary list trimester-specific nuance; absence of dose form noted.",
+    "expected_jnana_path": ["viparyaya", "samsaya", "prama_or_sustained_samsaya"],
+    "ground_truth_adjudication": "pending_expert"
+  },
+  {
+    "id": "h2-vaidya-002",
+    "split": "held_out",
+    "task": "H2-T3",
+    "domain": "vaidya_mitra",
+    "term": "Prameha",
+    "savikalpa_arthas": ["classical urinary disorder category", "loose mapping to diabetes mellitus", "metabolic syndrome framing"],
+    "expected_behavior": "disambiguate_before_clinical_claim",
+    "ground_truth_adjudication": "pending_expert"
+  }
+]

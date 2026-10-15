@@ -20,5 +20,19 @@
     "C": {"padartha": true, "pramana": true, "jnana": true, "dharma_guard": false},
     "D": {"padartha": true, "pramana": true, "jnana": true, "dharma_guard": true}
   },
-  "notes": "Starter human-reviewed fixtures plus optional generated_v060.jsonl (1000 synthetic cases) when ADT_EVAL_INCLUDE_GENERATED=1."
+  "hypothesis_tracks": {
+    "H1_concept_discovery": "data/experiments/h1_concept_discovery",
+    "H2_grounded_understanding": "data/experiments/h2_grounded_understanding",
+    "H3_scientific_reasoning": "data/experiments/h3_scientific_reasoning",
+    "cross_domain": "data/experiments/materials_science_slice"
+  },
+  "measurement_map": {
+    "concept_discovery": "H1",
+    "grounded_understanding": "H2",
+    "scientific_reasoning": "H3",
+    "epistemic_humility": "H2",
+    "constitutional_governance": "A-D"
+  },
+  "v07_research_spec": "docs/ADT_v0.7_EPISTEMIC_INTELLIGENCE_DISCOVERY.md",
+  "notes": "A–D regression fixtures + optional generated_v060.jsonl for pipeline only. v0.7 discovery claims use data/experiments/*/held_out.json with expert adjudication."
 }

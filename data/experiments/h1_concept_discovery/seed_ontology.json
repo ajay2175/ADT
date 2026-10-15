@@ -1,0 +1,11 @@
+{
+  "version": "h1-seed-v1",
+  "samanya": [
+    "classical_rasayana_dravya",
+    "standard_deepana_herb"
+  ],
+  "dravya": ["Guduchi", "Amalaki", "Ashwagandha", "Tulsi"],
+  "guna": ["tikta", "madhura", "guru", "snigdha", "ushna", "laghu"],
+  "karma": ["deepana", "rasayana", "medhya", "shothahara"],
+  "notes": "Target latent cluster tikta+deepana+immune_prabhava is intentionally absent from samanya."
+}

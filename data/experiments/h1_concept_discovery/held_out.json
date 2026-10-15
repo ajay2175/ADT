@@ -1,0 +1,41 @@
+[
+  {
+    "id": "v-held-01",
+    "split": "held_out",
+    "domain": "vaidya_mitra",
+    "dravya": "NovelHerb-X",
+    "guna": ["tikta", "laghu"],
+    "karma": ["deepana", "immune_modulation"],
+    "outlier": false,
+    "adjudication": {
+      "holdout_cluster": "latent_tikta_deepana_immune",
+      "accept_as_visesha": false
+    }
+  },
+  {
+    "id": "v-held-02",
+    "split": "held_out",
+    "domain": "vaidya_mitra",
+    "dravya": "NovelHerb-Y",
+    "guna": ["madhura", "guru"],
+    "karma": ["rasayana", "sleep_latency"],
+    "outlier": true,
+    "adjudication": {
+      "holdout_cluster": "visesha_sleep_rasayana",
+      "accept_as_visesha": true
+    }
+  },
+  {
+    "id": "m-held-01",
+    "split": "held_out",
+    "domain": "materials_science",
+    "dravya": "Perovskite-Candidate",
+    "guna": ["tolerance_high"],
+    "karma": ["bandgap_stable"],
+    "outlier": false,
+    "adjudication": {
+      "holdout_cluster": "latent_tolerance_band_stable",
+      "transfer_from_domain": "vaidya_mitra"
+    }
+  }
+]

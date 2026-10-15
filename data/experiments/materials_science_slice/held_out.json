@@ -1,0 +1,16 @@
+[
+  {
+    "id": "h1-materials-001",
+    "split": "held_out",
+    "task": "H1-T3",
+    "domain": "materials_science",
+    "observations": [
+      "Perovskites A and B tolerate similar ionic radius mismatch; C fails despite similar nominal formula.",
+      "Goldschmidt tolerance factor t in [0.9, 1.0] for A,B; t=0.82 for C."
+    ],
+    "seed_ontology_excludes": ["goldschmidt_tolerance_band"],
+    "transfer_from": "h1-vaidya-001",
+    "notes": "Tests Knowledge Interoperability: abstraction from Ayurveda cluster must not use domain-specific labels in materials task.",
+    "ground_truth_adjudication": "pending_expert"
+  }
+]

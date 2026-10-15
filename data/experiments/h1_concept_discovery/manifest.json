@@ -1,0 +1,19 @@
+{
+  "experiment_id": "h1-concept-discovery",
+  "hypothesis": "H1",
+  "version": "0.7.0",
+  "constructs": ["dravya", "guna", "karma", "samanya", "visesa", "samavaya", "abhava"],
+  "splits": ["dev", "validation", "held_out"],
+  "task_families": ["H1-T1", "H1-T2", "H1-T3"],
+  "baselines": ["B-LLM", "B-KG", "B-NeuroSym"],
+  "adt_configs": ["A", "B", "C", "D"],
+  "primary_metrics": [
+    "novel_abstraction_quality",
+    "transfer_accuracy",
+    "exception_f1",
+    "proposal_precision",
+    "false_universal_rate"
+  ],
+  "rubric_version": "h1-v1",
+  "notes": "Seed cases illustrate protocol; superiority claims require held_out expert adjudication only."
+}

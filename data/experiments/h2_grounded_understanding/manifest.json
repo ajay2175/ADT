@@ -1,0 +1,18 @@
+{
+  "experiment_id": "h2-grounded-understanding",
+  "hypothesis": "H2",
+  "version": "0.7.0",
+  "constructs": ["sabda", "artha", "sabdhartha", "nirvikalpa", "savikalpa", "samsaya", "prama", "viparyaya"],
+  "splits": ["dev", "validation", "held_out"],
+  "task_families": ["H2-T1", "H2-T2", "H2-T3", "H2-T4"],
+  "baselines": ["B-LLM", "B-KG-RAG", "ADT-A"],
+  "adt_configs": ["A", "B", "C", "D"],
+  "primary_metrics": [
+    "unsupported_claim_rate",
+    "misconception_correction",
+    "calibration_ece",
+    "evidence_seeking_efficiency",
+    "semantic_consistency"
+  ],
+  "rubric_version": "h2-v1"
+}

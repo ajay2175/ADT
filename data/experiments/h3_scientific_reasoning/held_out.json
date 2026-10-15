@@ -1,0 +1,20 @@
+[
+  {
+    "id": "h3-vaidya-001",
+    "split": "held_out",
+    "task": "H3-Vaidya",
+    "domain": "vaidya_mitra",
+    "observations": [
+      "Herb formulation F increases fasting glucose in subset S1, no effect in S2.",
+      "S1 shares guru, snigdha guna pattern; S2 does not."
+    ],
+    "competing_hypotheses": [
+      "H_a: guna-mediated metabolic karma",
+      "H_b: excipient interaction only",
+      "H_c: compliance artifact"
+    ],
+    "required_output": "proposed_discriminating_observation",
+    "epistemic_layers_required": ["interpretation", "experimental_hypothesis", "not_clinical_recommendation"],
+    "ground_truth_adjudication": "pending_expert"
+  }
+]

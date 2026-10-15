@@ -1,0 +1,57 @@
+[
+  {
+    "id": "v-train-01",
+    "split": "train",
+    "domain": "vaidya_mitra",
+    "dravya": "Guduchi",
+    "guna": ["tikta", "ushna"],
+    "karma": ["deepana", "immune_modulation"],
+    "outlier": false
+  },
+  {
+    "id": "v-train-02",
+    "split": "train",
+    "domain": "vaidya_mitra",
+    "dravya": "Amalaki",
+    "guna": ["tikta", "madhura"],
+    "karma": ["deepana", "immune_modulation"],
+    "outlier": false
+  },
+  {
+    "id": "v-train-03",
+    "split": "train",
+    "domain": "vaidya_mitra",
+    "dravya": "Tulsi",
+    "guna": ["tikta", "laghu"],
+    "karma": ["deepana", "immune_modulation"],
+    "outlier": false
+  },
+  {
+    "id": "v-train-04",
+    "split": "train",
+    "domain": "vaidya_mitra",
+    "dravya": "Ashwagandha",
+    "guna": ["madhura", "guru"],
+    "karma": ["rasayana", "sleep_latency"],
+    "outlier": true,
+    "visesha_note": "Shares rasayana context but different guna-karma; must not absorb into tikta-deepana-immune universal"
+  },
+  {
+    "id": "m-train-01",
+    "split": "train",
+    "domain": "materials_science",
+    "dravya": "Perovskite-A",
+    "guna": ["tolerance_high"],
+    "karma": ["bandgap_stable"],
+    "outlier": false
+  },
+  {
+    "id": "m-train-02",
+    "split": "train",
+    "domain": "materials_science",
+    "dravya": "Perovskite-B",
+    "guna": ["tolerance_high"],
+    "karma": ["bandgap_stable"],
+    "outlier": false
+  }
+]

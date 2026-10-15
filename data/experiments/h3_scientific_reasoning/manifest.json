@@ -1,0 +1,18 @@
+{
+  "experiment_id": "h3-scientific-reasoning",
+  "hypothesis": "H3",
+  "version": "0.7.0",
+  "constructs": ["pratyaksha", "anumana", "upamana", "tantrayukti", "karma", "causal_graph"],
+  "splits": ["dev", "validation", "held_out"],
+  "task_families": ["H3-T1", "H3-T2", "H3-T3", "H3-Vaidya"],
+  "baselines": ["B-LLM", "causal_discovery_tabular", "ADT-no-theory-engine"],
+  "adt_configs": ["A", "B", "C", "D"],
+  "primary_metrics": [
+    "information_gain",
+    "discrimination_accuracy",
+    "assumption_coverage",
+    "post_update_accuracy",
+    "unsupported_rejection_rate"
+  ],
+  "rubric_version": "h3-v1"
+}
