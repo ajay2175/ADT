@@ -1,0 +1,22 @@
+{
+  "observation_id": "cal-ayur-008",
+  "split": "calibration",
+  "domain": "vaidya_mitra",
+  "epistemic_layer": "classical_text",
+  "dravya": "Guḍūcī (stage A grouping)",
+  "guna": [
+    "tikta"
+  ],
+  "karma": [
+    "deepana"
+  ],
+  "context": "Stage A: tikta+deepana only—tempting coarse samānya.",
+  "source": {
+    "work": "Synthetic staging for revision test",
+    "section": "Exploratory H1/H2 — not confirmatory",
+    "evidence_type": "classical_text",
+    "reliability": "proposed",
+    "verification_status": "pending"
+  },
+  "cluster_id": "cal-cluster-008"
+}

@@ -8,9 +8,20 @@
 | `pilot_v1` `test` split | 40 | Confirmatory held-out (after curation + adjudication) |
 | `held_out_study_v1` | 60 | Separate replication study (deferred) |
 
+## Data layers (required)
+
+| Directory | Audience |
+|-----------|----------|
+| `observation_data/` | **Systems only** — no expected category |
+| `ground_truth/` | Experts/panel only |
+| `source_verification/` | Curation + AI-assisted śabda trace |
+| `ayurveda_10_cases.jsonl` | Legacy index (being replaced per-id files) |
+
+See `docs/H1_OBSERVATION_GROUND_TRUTH_SEPARATION.md`.
+
 ## Design principle (discovery, not retrieval)
 
-Cases are chosen so the **latent Guṇa–Karma–prabhāva pattern is not named** in `seed_ontology.json` `samanya`. Classical sources are cited for **Viśeṣa** grounding; the system must propose **Sāmānya**, not retrieve an existing ontology node.
+Source passages ground **Viśeṣa**; systems must propose **Sāmānya** without pre-labels in observation files. Research-focus tags belong in `ground_truth/` after verification (`RESEARCH_FOCUS_SOURCING.md`).
 
 ## Workflow
 

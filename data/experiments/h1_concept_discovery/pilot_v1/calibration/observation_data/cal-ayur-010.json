@@ -1,0 +1,25 @@
+{
+  "observation_id": "cal-ayur-010",
+  "split": "calibration",
+  "domain": "vaidya_mitra",
+  "epistemic_layer": "classical_text",
+  "dravya": "Bhallātaka (cautionary)",
+  "guna": [
+    "katu",
+    "tikta",
+    "ushna"
+  ],
+  "karma": [
+    "deepana",
+    "tikshna_shodhana"
+  ],
+  "context": "Shares uṣṇa-katu deepana surface with Pippalī-like herbs but tikshna śodhana and toxicity constraints forbid naive cluster merge.",
+  "source": {
+    "work": "Caraka Saṃhitā",
+    "section": "Bhallātaka / toxic dravya handling",
+    "evidence_type": "classical_text",
+    "reliability": "proposed",
+    "verification_status": "pending"
+  },
+  "cluster_id": "cal-cluster-010"
+}

@@ -1,0 +1,26 @@
+{
+  "observation_id": "cal-ayur-006",
+  "split": "calibration",
+  "domain": "vaidya_mitra",
+  "epistemic_layer": "interpretation",
+  "dravya": "Aśvagandhā",
+  "guna": [
+    "madhura",
+    "snigdha",
+    "guru"
+  ],
+  "karma": [
+    "balya",
+    "nidrakaraka",
+    "rasayana"
+  ],
+  "context": "Rasāyana with balya and sleep-related karma; must not be absorbed into tikta-deepana-immune latent cluster.",
+  "source": {
+    "work": "Bhāvaprakāśa",
+    "section": "Aśvagandhā",
+    "evidence_type": "interpretation",
+    "reliability": "proposed",
+    "verification_status": "pending"
+  },
+  "cluster_id": "cal-cluster-006"
+}

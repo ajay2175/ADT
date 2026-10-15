@@ -1,0 +1,25 @@
+{
+  "observation_id": "cal-ayur-005",
+  "split": "calibration",
+  "domain": "vaidya_mitra",
+  "epistemic_layer": "classical_text",
+  "dravya": "Pippalī",
+  "guna": [
+    "katu",
+    "ushna",
+    "tikta"
+  ],
+  "karma": [
+    "deepana",
+    "rasa_kshaya_in_high_dose"
+  ],
+  "context": "Uṣṇa-katu deepana with dose-dependent rasa-kṣaya effect—classical caution on overuse.",
+  "source": {
+    "work": "Caraka Saṃhitā",
+    "section": "Deepanīya mahākaśāya context",
+    "evidence_type": "classical_text",
+    "reliability": "proposed",
+    "verification_status": "pending"
+  },
+  "cluster_id": "cal-cluster-005"
+}

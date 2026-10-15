@@ -1,0 +1,25 @@
+{
+  "observation_id": "cal-ayur-004",
+  "split": "calibration",
+  "domain": "vaidya_mitra",
+  "epistemic_layer": "classical_text",
+  "dravya": "Harītakī",
+  "guna": [
+    "tikta",
+    "kashaya",
+    "ushna"
+  ],
+  "karma": [
+    "deepana",
+    "anulomana"
+  ],
+  "context": "Deepana paired with anulomana; classical use ties agni and elimination—distinct from immune-prabhāva cluster.",
+  "source": {
+    "work": "Aṣṭāṅga Hṛdaya",
+    "section": "Triphalā / Harītakī guṇa",
+    "evidence_type": "classical_text",
+    "reliability": "proposed",
+    "verification_status": "pending"
+  },
+  "cluster_id": "cal-cluster-004"
+}

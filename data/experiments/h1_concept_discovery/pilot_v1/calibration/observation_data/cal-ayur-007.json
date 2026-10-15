@@ -1,0 +1,25 @@
+{
+  "observation_id": "cal-ayur-007",
+  "split": "calibration",
+  "domain": "vaidya_mitra",
+  "epistemic_layer": "classical_text",
+  "dravya": "Śuṇṭhī",
+  "guna": [
+    "katu",
+    "ushna",
+    "madhura"
+  ],
+  "karma": [
+    "deepana",
+    "vāta_anulomana"
+  ],
+  "context": "Uṣṇa deepana with vāta-anulomana; overlaps deepana discourse but karma pairing distinct from cal-ayur-004 anulomana-gi pattern in different guṇa frame.",
+  "source": {
+    "work": "Caraka Saṃhitā",
+    "section": "Śuṇṭhī / nāgara discussion",
+    "evidence_type": "classical_text",
+    "reliability": "proposed",
+    "verification_status": "pending"
+  },
+  "cluster_id": "cal-cluster-007"
+}

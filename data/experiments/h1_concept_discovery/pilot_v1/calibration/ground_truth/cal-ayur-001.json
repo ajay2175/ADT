@@ -1,0 +1,20 @@
+{
+  "observation_id": "cal-ayur-001",
+  "split": "calibration",
+  "research_focus_candidates": ["guna_karma", "prabhava"],
+  "notes_for_curators": "Do not expose this file to systems. Tags are hypothesis about what the case may test—not the label to predict.",
+  "expert_ground_truth": {
+    "adjudication_status": "pending",
+    "holdout_cluster": null,
+    "acceptable_samanya_descriptions": [],
+    "documented_counterexamples": [],
+    "competing_interpretations": [
+      "Classify only as rasāyana",
+      "Classify only as deepana"
+    ]
+  },
+  "functional_evaluation": {
+    "utility_criteria_documented": false,
+    "panel_scores": null
+  }
+}

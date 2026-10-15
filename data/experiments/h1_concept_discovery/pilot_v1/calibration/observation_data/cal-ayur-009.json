@@ -1,0 +1,23 @@
+{
+  "observation_id": "cal-ayur-009",
+  "split": "calibration",
+  "domain": "vaidya_mitra",
+  "epistemic_layer": "interpretation",
+  "dravya": "Guḍūcī + Kaṇṭakāri contrast (stage B)",
+  "guna": [
+    "tikta"
+  ],
+  "karma": [
+    "deepana",
+    "prabhāva_immune_context"
+  ],
+  "context": "Stage B: same tikta guṇa but divergent prabhāva/karma under fever-immune discourse—should trigger revision of stage A category.",
+  "source": {
+    "work": "Synthetic staging for revision test",
+    "section": "Exploratory — paired with cal-ayur-008",
+    "evidence_type": "interpretation",
+    "reliability": "proposed",
+    "verification_status": "pending"
+  },
+  "cluster_id": "cal-cluster-009"
+}

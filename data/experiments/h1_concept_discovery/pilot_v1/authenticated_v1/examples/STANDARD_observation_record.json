@@ -1,0 +1,17 @@
+{
+  "_comment": "Copy this shape when promoting a verified calibration case into authenticated_v1 split files.",
+  "observation_id": "auth-ayur-XXX",
+  "split": "development | validation | test",
+  "domain": "vaidya_mitra",
+  "dravya": "",
+  "guna": [],
+  "karma": [],
+  "context": "",
+  "source": {
+    "reference": "Edition, chapter, verse/page",
+    "evidence_type": "classical_text | interpretation | experimental_measurement",
+    "reliability": "expert_verified",
+    "verification_status": "expert_verified"
+  },
+  "cluster_id": "unique-leakage-group"
+}

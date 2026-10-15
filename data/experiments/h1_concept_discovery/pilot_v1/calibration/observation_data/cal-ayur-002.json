@@ -1,0 +1,25 @@
+{
+  "observation_id": "cal-ayur-002",
+  "split": "calibration",
+  "domain": "vaidya_mitra",
+  "epistemic_layer": "classical_text",
+  "dravya": "Āmalakī",
+  "guna": [
+    "tikta",
+    "madhura",
+    "hṛdya"
+  ],
+  "karma": [
+    "rasayana",
+    "dhatu_poshana"
+  ],
+  "context": "Shares rasāyana with other dravyas but guṇa profile (tikta-madhura) and dhatu emphasis diverge from Guḍūcī-like cluster.",
+  "source": {
+    "work": "Caraka Saṃhitā",
+    "section": "Rasāyana adhyāya (Āmalakī passage)",
+    "evidence_type": "classical_text",
+    "reliability": "proposed",
+    "verification_status": "pending"
+  },
+  "cluster_id": "cal-cluster-002"
+}

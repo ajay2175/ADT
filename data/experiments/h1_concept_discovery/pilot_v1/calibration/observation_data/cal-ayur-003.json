@@ -1,0 +1,25 @@
+{
+  "observation_id": "cal-ayur-003",
+  "split": "calibration",
+  "domain": "vaidya_mitra",
+  "epistemic_layer": "interpretation",
+  "dravya": "Kaṭukā",
+  "guna": [
+    "tikta",
+    "ruksha",
+    "laghu"
+  ],
+  "karma": [
+    "deepana",
+    "kapha_vilayana"
+  ],
+  "context": "Tikta-laghu herbs grouped in discourse; kapha-vilayana karma overlaps deepana cluster but ruksha-laghu differentiates from snigdha rasāyana types.",
+  "source": {
+    "work": "Suśruta Saṃhitā",
+    "section": "Dravya guṇa discussion (tikta group)",
+    "evidence_type": "interpretation",
+    "reliability": "proposed",
+    "verification_status": "pending"
+  },
+  "cluster_id": "cal-cluster-003"
+}
