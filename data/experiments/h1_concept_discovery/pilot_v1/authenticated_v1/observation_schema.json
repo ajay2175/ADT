@@ -1,0 +1,24 @@
+{
+  "schema_version": "authenticated_observation_v1",
+  "required_fields": {
+    "observation_id": "Unique identifier (stable across versions)",
+    "dravya": "Canonical substance / material identity",
+    "guna": "Array — classical or measured properties",
+    "karma": "Array — described or observed actions/effects",
+    "context": "Conditions, dose, preparation, exceptions (Viśeṣa context)",
+    "source": {
+      "reference": "Exact textual ref, DOI, dataset ID, or lab record",
+      "evidence_type": "classical_text | interpretation | experimental_measurement | simulation",
+      "reliability": "proposed | peer_reviewed | expert_verified"
+    },
+    "domain": "vaidya_mitra | materials_science",
+    "split": "development | validation | test | calibration",
+    "cluster_id": "Leakage-control grouping — no cluster spans splits",
+    "ground_truth": {
+      "adjudication_status": "pending | ready",
+      "holdout_cluster": "Independent adjudication label when ready"
+    }
+  },
+  "pramana_note": "Classical śabda establishes traditional description, not modern biomedical efficacy unless separately evidenced.",
+  "materials_note": "Measured vs calculated/simulated properties must be tagged in source.evidence_type"
+}

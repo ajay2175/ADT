@@ -1,0 +1,33 @@
+{
+  "dataset_version": "authenticated_v1",
+  "status": "curation_in_progress_not_frozen",
+  "replaces": "placeholder_archive/observations_placeholder_frozen_6e8b8bb.jsonl",
+  "protocol_version": "1.1.0",
+  "design_lock_commit": "6e8b8bb",
+  "splits_required_authentic": {
+    "development": 60,
+    "validation": 20,
+    "test": 40,
+    "note": "All splits must be source-grounded before official run — not test-only curation"
+  },
+  "domains": {
+    "vaidya_mitra": 60,
+    "materials_science": 60
+  },
+  "calibration": {
+    "path": "../calibration/ayurveda_10_cases.jsonl",
+    "separate_from_confirmatory_test": true
+  },
+  "ontology_auto_apply": false,
+  "freeze_checklist": {
+    "all_splits_curated": false,
+    "integrity_audit_pass": false,
+    "model_slots_filled": false,
+    "code_commit_recorded": false,
+    "panel_instructions_acknowledged": true
+  },
+  "model_slots": {
+    "llm_backbone": "UNFILLED",
+    "embedding_model": "UNFILLED"
+  }
+}

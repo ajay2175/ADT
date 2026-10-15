@@ -27,6 +27,14 @@
   "transfer_domain": "materials_science",
   "seed_ontology_file": "seed_ontology.json",
   "observations_file": "observations.jsonl",
+  "observations_file_status": "synthetic_placeholder_archived",
+  "authenticated_dataset": {
+    "version": "authenticated_v1",
+    "path": "authenticated_v1",
+    "status": "curation_in_progress",
+    "official_run_requires": "frozen_authenticated_v1_all_splits"
+  },
+  "placeholder_archive": "placeholder_archive/observations_placeholder_frozen_6e8b8bb.jsonl",
   "ontology_auto_apply": false,
   "adjudication": {
     "panel_size": 3,
