@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "observation_id": "cal-ayur-004",
+  "claim": {
+    "dravya": "Harītakī",
+    "guna": [
+      "tikta",
+      "kashaya",
+      "ushna"
+    ],
+    "karma": [
+      "deepana",
+      "anulomana"
+    ],
+    "context": "Deepana paired with anulomana; classical use ties agni and elimination—distinct from immune-prabhāva cluster.",
+    "epistemic_layer": "classical_text"
+  },
+  "passage": {
+    "work": "Aṣṭāṅga Hṛdaya",
+    "edition": "",
+    "chapter_section": "Triphalā / Harītakī guṇa",
+    "verse_or_page": "Pending exact citation",
+    "sanskrit": "",
+    "transliteration": "",
+    "translation": "",
+    "not_found_documented": false,
+    "not_found_reason": ""
+  },
+  "tantrayukti": {
+    "literal_meaning": "",
+    "contextual_reading": "",
+    "inferential_conclusion": "",
+    "explicit_in_text": [],
+    "inferred_by_commentary": []
+  },
+  "competing_readings": [
+    {
+      "source": "",
+      "reading": "",
+      "relation": "agrees | contradicts | exception"
+    }
+  ],
+  "pramana_tags": {
+    "sabda": true,
+    "modern_biomedical_claim": false,
+    "biomedical_evidence_refs": []
+  },
+  "ai_assistance_log": [
+    {
+      "date": "",
+      "tool": "",
+      "task": "retrieval | translation | tantrayukti_draft"
+    }
+  ],
+  "expert_signoff": {
+    "status": "pending | accept | reject | uncertain",
+    "reviewer": "",
+    "date": "",
+    "notes": ""
+  },
+  "_research_prompt_for_ai_assistant": "Retrieve primary passage for this claim. Separate explicit śabda from commentary inference. Do not assert modern clinical efficacy unless separate experimental sources are cited.",
+  "_case_discovery_target": "Coupled karma pattern as candidate samānya",
+  "_revision_pair_id": null
+}
