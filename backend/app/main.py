@@ -14,8 +14,13 @@ from app.decisions import analyze_decision
 from app.drift import run_drift_check
 from app.experts import select_experts
 from app.ingestion import ingest_bytes
+from app.dharma_guard import GuardAction, authorize, protected_graph_integrity
+from app.epistemic_pipeline import promote_assertion_to_prama, trace_knowledge_lineage
 from app.graph import entity_search, graph_status, knowledge_graph, neighbors, project_accepted_knowledge, shortest_path, sync_static_nodes
+from app.jnana import CognitiveStateRecord, JnanaState, get_state, transition
 from app.model_gateway import get_provider
+from app.padartha import GraphAssertion, create_assertion, list_assertions
+from app.pramana import EvidenceRecord, add_evidence, ledger_for_assertion
 from app.retrieval import hybrid_graph_rag, hybrid_search, vector_search
 
 
@@ -58,7 +63,7 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=8000)
 
 
-app = FastAPI(title="ADT Vault API", version="0.2.0")
+app = FastAPI(title="ADT Vault API", version="0.3.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1:5173", "http://localhost:5173", "http://localhost:3000"],
@@ -325,3 +330,69 @@ async def chat(body: ChatRequest):
         ]
     )
     return {"reply": reply, "llm_provider": provider.__class__.__name__}
+
+
+@app.post("/v1/epistemic/padartha/assertions", status_code=201)
+def post_padartha_assertion(payload: GraphAssertion):
+    try:
+        return create_assertion(payload)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@app.get("/v1/epistemic/padartha/assertions")
+def get_padartha_assertions(epistemic_status: str | None = None, knowledge_id: str | None = None):
+    return list_assertions(epistemic_status, knowledge_id)
+
+
+@app.post("/v1/epistemic/pramana/evidence", status_code=201)
+def post_pramana_evidence(payload: EvidenceRecord):
+    try:
+        return add_evidence(payload)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@app.get("/v1/epistemic/pramana/evidence/{assertion_id}")
+def get_pramana_ledger(assertion_id: str):
+    return ledger_for_assertion(assertion_id)
+
+
+@app.post("/v1/epistemic/jnana/transition")
+def post_jnana_transition(payload: CognitiveStateRecord):
+    try:
+        return transition(payload.subject_type, payload.subject_id, payload.state, payload.note)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@app.get("/v1/epistemic/jnana/state")
+def get_jnana_state(subject_type: str, subject_id: str):
+    state = get_state(subject_type, subject_id)
+    if not state:
+        raise HTTPException(404, "No cognitive state record")
+    return state
+
+
+@app.post("/v1/governance/dharma-guard/authorize")
+def dharma_guard_authorize(action: GuardAction, explicit_ajay_approval: bool = False, amendment_id: str = ""):
+    return authorize(action, {"explicit_ajay_approval": explicit_ajay_approval, "amendment_id": amendment_id})
+
+
+@app.get("/v1/governance/dharma-guard/integrity")
+def dharma_guard_integrity():
+    return protected_graph_integrity()
+
+
+@app.get("/v1/epistemic/lineage/{knowledge_id}")
+def epistemic_lineage(knowledge_id: str):
+    return trace_knowledge_lineage(knowledge_id)
+
+
+@app.post("/v1/epistemic/padartha/assertions/{assertion_id}/validate")
+def validate_assertion(assertion_id: str, reviewer_note: str = ""):
+    """Assertion validation (level 2) — not document admission."""
+    try:
+        return promote_assertion_to_prama(assertion_id, reviewer_note)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc

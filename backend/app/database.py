@@ -203,6 +203,30 @@ def setup_database() -> None:
               created_at TEXT NOT NULL
             )
             """,
+            """
+            CREATE TABLE IF NOT EXISTS padartha_assertions (
+              id TEXT PRIMARY KEY, subject TEXT NOT NULL, predicate TEXT NOT NULL,
+              object TEXT NOT NULL, relation_kind TEXT NOT NULL, padartha_json TEXT NOT NULL,
+              epistemic_status TEXT NOT NULL, source_ids TEXT NOT NULL, constitutional INTEGER NOT NULL,
+              knowledge_id TEXT, created_at TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS pramana_evidence (
+              id TEXT PRIMARY KEY, assertion_id TEXT NOT NULL, evidence_type TEXT NOT NULL,
+              source_id TEXT NOT NULL, passage TEXT NOT NULL, supports INTEGER NOT NULL,
+              source_reliability REAL NOT NULL, validation_status TEXT NOT NULL,
+              inference_dependencies TEXT NOT NULL, absence TEXT, reviewer_note TEXT NOT NULL,
+              created_at TEXT NOT NULL,
+              FOREIGN KEY(assertion_id) REFERENCES padartha_assertions(id)
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS jnana_states (
+              id TEXT PRIMARY KEY, subject_type TEXT NOT NULL, subject_id TEXT NOT NULL,
+              state TEXT NOT NULL, note TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT
+            )
+            """,
         ]:
             if connection.dialect == "sqlite":
                 connection.executescript(ddl)

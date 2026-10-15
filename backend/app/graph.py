@@ -6,6 +6,7 @@ import uuid
 
 from app.config import settings
 from app.database import NOW, db, rows_to_dicts
+from app.epistemic_pipeline import project_epistemic_from_knowledge
 from app.extraction import extract_entities_relations
 
 logger = logging.getLogger(__name__)
@@ -160,10 +161,19 @@ async def index_accepted_knowledge(knowledge_id: str) -> dict:
 
     extracted = await extract_entities_relations(item["title"], text)
     extracted["title"] = item["title"]
+
+    epistemic = await project_epistemic_from_knowledge(knowledge_id, text, item["title"])
+
     driver = _get_driver()
     if not driver:
         _mirror_edges_sql(knowledge_id, extracted)
-        return {"indexed": False, "graph": "offline", "extraction": extracted, "entities": len(extracted["entities"])}
+        return {
+            "indexed": False,
+            "graph": "offline",
+            "entities": len(extracted["entities"]),
+            "relations": len(extracted["relations"]),
+            "epistemic": epistemic,
+        }
 
     ensure_schema()
     with driver.session(database=settings.neo4j_database) as session:
@@ -229,6 +239,7 @@ async def index_accepted_knowledge(knowledge_id: str) -> dict:
         "knowledge_id": knowledge_id,
         "entities": len(extracted["entities"]),
         "relations": len(extracted["relations"]),
+        "epistemic": epistemic,
     }
 
 
