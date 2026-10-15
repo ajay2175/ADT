@@ -1,14 +1,44 @@
 {
-  "version": "1.0",
+  "version": "1.1",
+  "protocol_version": "1.2.0",
   "scales": {
-    "novelty": { "min": 1, "max": 5, "anchor_5": "Not present in seed ontology; not a rename of existing category" },
-    "validity": { "min": 1, "max": 5, "anchor_5": "Supported by observations; survives stated counterexamples" },
-    "utility": { "min": 1, "max": 5, "anchor_5": "Would improve prediction/reasoning on held-out instances" }
+    "domain_validity": {
+      "min": 1,
+      "max": 5,
+      "anchor_5": "Classically or scientifically defensible for the domain"
+    },
+    "conceptual_novelty": {
+      "min": 1,
+      "max": 5,
+      "anchor_5": "Not a relabeling; new structural pattern or functional utility"
+    },
+    "exception_handling": {
+      "min": 1,
+      "max": 5,
+      "anchor_5": "Viśeṣa/outliers correctly not absorbed into false universal"
+    },
+    "held_out_utility": {
+      "min": 1,
+      "max": 5,
+      "anchor_5": "Would improve prediction or defensible inference on unseen cases"
+    },
+    "methodology_integrity": {
+      "min": 1,
+      "max": 5,
+      "anchor_5": "No leakage; trace complete; scoring consistent"
+    }
+  },
+  "novelty_levels": {
+    "lexical": "New terminology vs seed ontology (Jaccard)",
+    "structural": "New Guṇa–Karma / composition–property pattern",
+    "functional_decisive": "Ablation shows category improves held-out performance"
   },
   "roles": {
-    "domain_expert": ["validity", "utility"],
-    "ai_ontology_researcher": ["novelty", "validity"],
-    "independent_integrity": ["validity", "evidence_trace_completeness"]
+    "domain_adjudicator": ["domain_validity", "held_out_utility"],
+    "ontology_ai_adjudicator": ["conceptual_novelty", "exception_handling"],
+    "methodological_reviewer": ["methodology_integrity", "held_out_utility"]
   },
+  "confirmatory": "Pre-registered strict dominance on adjudicated 60-case study",
+  "exploratory": "Novelty levels, partial metrics, utility deltas without strict dominance",
   "disagreement": "Document dissent; majority median per dimension; no unilateral success by project lead"
 }
