@@ -2,6 +2,17 @@
   "pilot_id": "h1-pilot-v1",
   "frozen_at": "2026-10-15",
   "protocol_version": "1.1.0",
+  "evaluation_plan": {
+    "confirmatory_split": "test",
+    "confirmatory_held_out_n": 40,
+    "note": "Pre-registered Pilot v1 endpoint; do not substitute held_out_study_v1 (60) without new protocol version"
+  },
+  "replication_study": {
+    "id": "held_out_study_v1",
+    "n_cases": 60,
+    "status": "deferred_separate_preregistration",
+    "not_retroactive_to_pilot_v1": true
+  },
   "design": {
     "total_cases": 120,
     "ayurveda": 60,

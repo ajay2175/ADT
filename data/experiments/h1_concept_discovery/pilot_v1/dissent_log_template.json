@@ -1,0 +1,19 @@
+{
+  "pilot_id": "h1-pilot-v1",
+  "reviewer_id": "REVIEWER_CODE",
+  "role": "domain_adjudicator | ontology_ai_adjudicator | methodological_reviewer",
+  "conflicts_of_interest_declared": false,
+  "coi_notes": "",
+  "entries": [
+    {
+      "blinded_system_code": "SYS-ETA",
+      "proposal_label": "samanya_example",
+      "dimension": "conceptual_novelty",
+      "my_score": 3,
+      "other_scores": [5, 4],
+      "dissent_rationale": "",
+      "resolved": false,
+      "resolution": ""
+    }
+  ]
+}

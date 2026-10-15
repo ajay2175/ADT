@@ -37,7 +37,12 @@ Separate **generation/validation** failures from **transfer** failures in the JS
 
 Protocol refinements are versioned; confirmatory criteria from 1.1.0 remain primary; functional novelty is required for scientific “usefulness.”
 
-## 4. Held-out study v1 (60 cases)
+## 4. Pilot v1 vs held-out study v1 (design lock)
+
+- **Pilot v1 (823bedf):** 120 cases; **confirmatory held-out = 40 `test`** — official pre-registered endpoint for Protocol 1.1.0.
+- **held_out_study_v1 (60):** Separate **replication** study; **not** retroactively imposed on Pilot v1.
+
+## 5. Held-out study v1 (60 cases — deferred)
 
 ```bash
 PYTHONPATH=. python -m app.experiments.run_h1_failure_anatomy --freeze-held-out-study --seed 42

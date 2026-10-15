@@ -1,6 +1,8 @@
 {
   "study_id": "h1-held-out-study-v1",
   "protocol_version": "1.2.0",
+  "relationship_to_pilot_v1": "replication_follow_on_not_substitute_for_40_test_split",
+  "status": "deferred_until_pilot_v1_adjudicated",
   "n_cases": 60,
   "vaidya_mitra": 30,
   "materials_science": 30,
